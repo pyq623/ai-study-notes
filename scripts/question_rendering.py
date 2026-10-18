@@ -1,4 +1,4 @@
-"""Question cards shared by all six sections."""
+"""Question cards shared by all sections."""
 def answer_html(q):
     anchor = q.get('review_anchor', 'lesson-' + str(q['lesson']))
     return '<strong>正确答案：' + q['answer'] + '</strong><ol class="explanation-list">' + ''.join(('<li>' + rich(e) + '</li>' for e in q['explanations'])) + '</ol><a href="#' + anchor + '">回到本题对应讲解</a>'

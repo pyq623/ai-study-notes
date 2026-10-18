@@ -132,9 +132,11 @@ $$N_{\mathrm{GPU}}=D\times T\times P,\qquad G=D\times B\times K$$
 
 **口算自检：** 8张卡，TP=2、PP=2，每副本每批4个样本，累积3批。先算DP：$8/(2\times2)=2$；再算batch：$2\times4\times3=24$。若已知每轮所有DP副本合计8个样本、累积3轮，则直接 $8\times3=24$，不要再乘DP。
 
+SP、CP、EP以及各策略的通信次数和字节数，见[第3节的通信手算](#lesson-3-step-8)。
+
 本节概念核对：[NVIDIA并行说明](https://docs.nvidia.com/nemo/megatron-bridge/latest/parallelisms.html)、[NVIDIA batch定义](https://docs.nvidia.com/nemo-framework/user-guide/24.07/nemotoolkit/nlp/nemo_megatron/batching.html)、[DeepSpeed ZeRO配置说明](https://www.deepspeed.ai/docs/config-json/)。表格与算例为本讲义自编。
 
-## 3. All-Reduce、Reduce-Scatter、All-Gather
+## 3. 通信算子与并行策略：次数、字节数与手算
 
 ### ① 先弄清：谁在通信，传的是什么？
 
@@ -208,7 +210,7 @@ All-Gather可以独立使用，不要求前面一定有Reduce-Scatter。**如果
 
 最后与直接SUM All-Reduce相同。**Reduce-Scatter负责“合并并分片”，All-Gather负责“把这些结果分片补齐”。** 这里要求归约规则一致、分片与拼接顺序匹配；第二步的输入必须是第一步的输出。
 
-这个等价关系说明结果语义相同，不保证任意两种实现耗时相同；浮点数的加法顺序不同，也可能带来微小数值差异。第一遍做题先根据输入输出判断，不必推导环形通信的每条消息。
+这个等价关系说明结果语义相同，不保证任意两种实现耗时相同；浮点数的加法顺序不同，也可能带来微小数值差异。先根据输入输出判断；环形通信的轮数与字节数见本节第⑧小节。
 
 ### ⑥ 在训练里各用在哪里？
 
@@ -239,6 +241,235 @@ All-Gather可以独立使用，不要求前面一定有Reduce-Scatter。**如果
 **三个问题就能判断：先看要不要计算，再看是完整结果还是一块，最后看谁得到结果。** 易混项：普通Reduce只要求指定的接收者拿到归约结果，All-Reduce让所有参与者拿到；普通Gather只汇集到指定接收者，All-Gather让所有参与者拿到完整拼接。它们都不意味着自动更新模型参数。
 
 概念依据：[NVIDIA NCCL集合通信说明](https://docs.nvidia.com/deeplearning/nccl/user-guide/docs/usage/collectives.html)。表格与数值演示为本讲义自编。
+
+### ⑧ 先统一单位：张量大小、算子次数、Ring轮数
+
+以下只算**有效数据载荷的发送字节数**，不计协议头、路由元数据和重传。每卡发送量、每卡收发之和、全组发送量要分开；同一条P2P消息在发送端和接收端各记一次，不代表网络传了两份。
+
+| 符号 | 本节含义 |
+| --- | --- |
+| $B,S,H$ | 每个模型副本的microbatch样本数、序列长度、hidden维度 |
+| $b$ | 一个激活元素的字节数；BF16/FP16为2，FP32为4，不是head维度 |
+| $A=BSHb$ | 一份完整hidden state的字节数 |
+| $t,p,c,e,D$ | TP度、PP阶段数、CP度、EP度、DP度；EP度不是专家总数 |
+| $K,L$ | 每次更新的microbatch数、本卡参与计算的Transformer层数 |
+| $H_{kv}=n_{kv}d_{head}$ | KV总宽度＝KV头数×每头维度；不是KV头数本身 |
+| $T_{local},k$ | 进入本卡MoE路由器的token数、每token选择的专家数 |
+| $N_{local},b_g$ | 当前DP组所复制的本卡参数元素数、参数梯度通信的每元素字节数 |
+
+例：$B=4,S=2048,H=4096,b=2$，则 $A=67108864$ byte＝**64 MiB**。它是张量大小，还没乘通信系数。
+
+假设有 $r$ 个rank，采用等分块的简单Ring算法。记完整张量大小为 $M$：AR/RS的每卡输入是 $M$，**AG的每卡输入是 $M/r$、输出才是 $M$**。
+
+| 一次算子调用 | 内部交换轮数 | 每轮每卡发送 | 每卡总发送 |
+| --- | --- | --- | --- |
+| Reduce-Scatter（RS） | $r-1$ | $M/r$ | $(r-1)M/r$ |
+| All-Gather（AG） | $r-1$ | $M/r$ | $(r-1)M/r$ |
+| All-Reduce（AR＝RS＋AG） | $2(r-1)$ | $M/r$ | $2(r-1)M/r$ |
+
+推导只需“**轮数×每轮的块大小**”。每卡接收量与发送量相同；收发相加再乘2，全组发送量则乘 $r$。Ring轮数是这里的理想化算法轮数，不是网卡包数，也不是框架API调用次数。
+
+**带算例：** 4卡、每卡对64 MiB做一次AR：每轮16 MiB，RS三轮＋AG三轮，故每卡发送 $6\times16=96$ MiB；每卡收发合计192 MiB，全组发送384 MiB。若是AG且**每卡输入64 MiB**，完整输出为256 MiB，每卡发送 $3\times64=192$ MiB，不能误套前一个64 MiB。
+
+依据：[NCCL测试的通信量口径](https://github.com/NVIDIA/nccl-tests/blob/master/doc/PERFORMANCE.md)。下面以此为手算模型；实际后端还可用树或其他算法。
+
+### ⑨ TP：每层为什么是前向2次、反向2次AR？
+
+本小节限定**经典Megatron稠密Transformer、不开SP、不重计算**，每层含Attention和MLP；不计embedding、LM head及其他辅助通信。张量形状默认可整除。
+
+把MLP写成 $Y=\operatorname{GELU}(XW_1)W_2$，其中 $X$ 展平为 $[BS,H]$，$W_1$ 为 $[H,4H]$，$W_2$ 为 $[4H,H]$：
+
+| 环节 | 每卡计算结果 | 为什么要／不要通信 |
+| --- | --- | --- |
+| $W_1$ 按输出列切分 | $[BS,4H/t]$ 的不同分量 | 各分量独立做GELU，可保持分片 |
+| $W_2$ 按输入行切分 | $[BS,H]$ 的**部分和** | 各卡部分和相加才是完整输出，做1次AR |
+| 反向回到 $X$ | 各卡产生对同一个 $X$ 的梯度贡献 | 相加得到完整输入梯度，再做1次AR |
+
+注意“形状完整”不等于“数值完整”：第二行每卡都有 $H$ 列，但每项只累加了本卡负责的那部分输入。Attention同理：QKV投影按头／输出分片，输出投影产生部分和；前向输出、反向输入梯度各做1次AR。
+
+```text
+前向：Attention输出 ─ AR ─ MLP输出 ─ AR
+反向：MLP输入梯度 ─ AR ─ Attention输入梯度 ─ AR
+```
+
+所以每层、每microbatch：**前向2次AR，反向2次AR，训练合计4次AR**。每次逻辑大小为 $A$，若正反向激活精度相同：
+
+$$V_{TP,fwd}=4\frac{t-1}{t}A,\qquad V_{TP,train}=8\frac{t-1}{t}A$$
+
+两式均为**每卡发送量**。同一TP组内各卡都参与这4次集合操作，不能把“4次”再乘 $t$ 当成时间上顺序发生的次数。全组发送量才乘 $t$。
+
+**带算例：** $t=8,A=64$ MiB，每次AR每卡发送112 MiB；前向224 MiB，训练448 MiB。若本卡负责24层、每次更新经过4个microbatch，则参与 $4\times24\times4=384$ 次AR。使用PP时，乘的是**本卡阶段内层数**，不是整模型层数；额外前向重计算的通信另加。
+
+依据：[Megatron-LM的列并行与行并行](https://arxiv.org/html/1909.08053v4)。
+
+### ⑩ TP＋SP：改成AG／RS后，次数与字节数怎么变？
+
+这里的**SP（Sequence Parallelism）特指Megatron式序列并行**：在TP组内，让LayerNorm、Dropout等逐token操作的激活沿序列分片；进入TP线性层前AG，输出处RS回到序列分片。SP复用TP组，不额外乘一套GPU数量。
+
+```text
+序列分片 [BS/t,H]
+  → AG → 完整序列输入 → 列并行 → 本卡头／MLP分量
+  → 行并行部分和 → RS → 序列分片 [BS/t,H]
+```
+
+每个Attention／MLP块各有上述一对AG、RS。**先按保留所需输入、无额外重取的基础模型计数：**
+
+| 范围：每层、每microbatch | AG次数 | RS次数 | 每卡发送量 |
+| --- | --- | --- | --- |
+| 前向 | 2 | 2 | $4(t-1)A/t$ |
+| 反向 | 2 | 2 | $4(t-1)A/t$ |
+| 前向＋反向 | 4 | 4 | $8(t-1)A/t$ |
+
+因此基础模型是**4次AR → 4次AG＋4次RS**：调用数从4变8，但字节数相同，因为一次AG或RS只承担一个Ring阶段。这不等于所有SP实现都没有额外通信。
+
+**省显存的常见变体：** 若只保存列并行层输入的序列分片，反向计算权重梯度前要重新AG输入。若QKV、MLP第一投影各额外AG一次，则反向变为4 AG＋2 RS，训练合计**6 AG＋4 RS**，每卡发送 $10(t-1)A/t$。通信计算重叠可隐藏部分耗时，不能把已传的字节算成0。
+
+**带算例：** $t=4,A=64$ MiB，每次AG／RS发送48 MiB。基础训练8次、共384 MiB；上述重取输入变体10次、共480 MiB。题目必须交代采用哪个口径。
+
+依据：[SP论文§4.2.2的基础计数与额外AG](https://arxiv.org/html/2205.05198v1)、[Megatron线性层的反向实现](https://github.com/NVIDIA/Megatron-LM/blob/main/megatron/core/tensor_parallel/layers.py)。
+
+### ⑪ PP：只数阶段边界，不乘Transformer层数
+
+限定**非交错流水线、每stage一张卡、无TP/SP**，每个microbatch沿 $p$ 个stage顺次经过 $p-1$ 条边界：
+
+```text
+前向：Stage 0 ─ 激活A → Stage 1 ─ 激活A → Stage 2
+反向：Stage 0 ← 激活梯度 ─ Stage 1 ← 激活梯度 ─ Stage 2
+```
+
+一条边界前向发1条激活消息，反向发1条激活梯度消息。若二者每元素字节数分别为 $b_a,b_{ag}$：
+
+$$V_{PP,train,group}=(p-1)BSH(b_a+b_{ag})$$
+
+这里明确是**整条流水线的总发送量**。若二者均为 $b$，则每microbatch前向 $p-1$ 条消息、$(p-1)A$；训练 $2(p-1)$ 条消息、$2(p-1)A$。stage内部层间不产生PP网络传输。
+
+| 每microbatch、$p\ge2$ | 首stage发送 | 中间stage发送 | 末stage发送 |
+| --- | --- | --- | --- |
+| 前向 | $A$ | $A$ | 0 |
+| 反向（同精度） | 0 | $A$ | $A$ |
+| 训练合计 | $A$ | $2A$ | $A$ |
+
+**带算例：** 32层分成4个stage，$A=64$ MiB。一批训练6条消息、全流水线384 MiB；5个microbatch共30条、1920 MiB。不是再乘32层，也不是每卡都发384 MiB。
+
+**Prefill与Decode：** Prefill用输入长度 $S$。普通单token Decode中，一步只向下一stage传当前token的hidden state，设活跃序列数 $B_{active}$，则每步全流水线发送 $(p-1)B_{active}Hb$；固定batch、执行 $N$ 个这样的后续步骤再乘 $N$。这里不能乘历史KV长度，历史KV通常保留在所属层。活跃batch变化时逐步求和。
+
+交错PP、虚拟stage、TP/SP分片、额外张量都会改变边界次数或payload；实际要按消息路径计数。PP等待和气泡影响时间，不自动增加这里的有效字节数。
+
+依据：[Megatron流水线与虚拟阶段](https://docs.nvidia.com/nemo/megatron-bridge/latest/parallelisms.html#pipeline-parallelism)。
+
+### ⑫ CP：Q留在本地，交换其他序列块的K/V
+
+**CP（Context Parallelism，上下文并行）** 把同一条序列的token分给 $c$ 张卡，本地hidden state形状为 $[B,S/c,H]$。逐token的MLP、归一化等可在本地算；Attention需要当前Query能访问的其他位置的K/V，所以要交换K/V。
+
+与SP区别：**SP在TP计算区恢复该组的序列；CP连Attention中的Query位置也分片**。下表按无TP的CP解释；因果掩码仍限制可见位置，实际实现可采用交错分片来平衡负载。
+
+| $c=4$ 时rank 0的示意过程 | 本地Q不动 | 看到的KV块 |
+| --- | --- | --- |
+| 本地计算 | $Q_0$ | $K_0,V_0$ |
+| 第1轮交换后 | $Q_0$ | $K_3,V_3$ |
+| 第2轮交换后 | $Q_0$ | $K_2,V_2$ |
+| 第3轮交换后 | $Q_0$ | $K_1,V_1$ |
+
+**4块计算不等于4轮网络交换：本地块无需传给自己，只有3轮交换。** 分块结果用在线softmax统计正确合并，不是把每块各自softmax后的输出直接相加，也不必长期保存完整注意力分数矩阵。
+
+定义全序列的K＋V数据大小 $A_{KV}=2BSH_{kv}b$，每卡持有 $A_{KV}/c$。在完整KV环形交换的教学模型中，每卡发送 $c-1$ 块：
+
+$$V_{CP,fwd}=(c-1)\frac{A_{KV}}c=2\frac{c-1}{c}BSH_{kv}b$$
+
+训练若**前向后只保留本地KV，反向重取KV**，按三个逻辑阶段估算：前向KV收集＋反向KV重取＋反向 $dK,dV$ 归约分片。若数据精度相同，各阶段发送量相同：
+
+$$V_{CP,train}\approx3V_{CP,fwd}=6\frac{c-1}{c}BSH_{kv}b$$
+
+以上为**每Attention层、每microbatch、每卡发送量**；全组再乘 $c$。这是“2个AG等价阶段＋1个RS等价阶段”的模型，后端可能把它们实现成一系列P2P，不代表只有3条消息；融合、因果优化及KV保存策略会改变实际执行。
+
+**带算例：** $B=2,S=4096,H_{kv}=1024,b=2,c=4$，全KV为32 MiB，本地8 MiB；前向发送 $3\times8=24$ MiB，训练约72 MiB，全组训练约288 MiB。GQA/MQA降低KV头数，因此此处用 $H_{kv}$，不能一律用hidden size $H$。
+
+这里算的是Attention的激活通信；CP复制参数后的参数梯度同步须按实际归约组另计。以上是训练／Prefill的序列切分模型，不能把 $S=1$ 直接套成保留长KV缓存的CP Decode成本。
+
+依据：[Megatron CP：KV收集、反向重取与归约分片](https://docs.nvidia.com/megatron-core/developer-guide/latest/user-guide/features/context_parallel.html)。
+
+### ⑬ EP：token去找专家，再把结果送回来
+
+**EP（Expert Parallelism，专家并行）** 只用于MoE专家层，把不同专家放在不同卡上。例如64个专家、EP度 $e=8$，均匀放置时每卡8个专家。把同一个专家内部矩阵再切开属于Expert TP，需另算其通信。
+
+本节采用**按token-expert assignment发送的标准All-to-All dispatcher**。All-to-All表示每个rank把发往不同目的地的块分别交换，不像All-Gather那样让每人获得所有token。top-$k$ 为一个token选 $k$ 个专家：
+
+```text
+原token所在卡 ─ dispatch：发送hidden state → 专家所在卡
+原token所在卡 ← combine：返回专家输出 ─ 专家所在卡
+                按路由权重合并多个专家输出
+```
+
+前向**2次All-to-All**：分发输入、收回输出。反向按相反路径传输出梯度、输入梯度，再2次；训练合计**4次**。这不是每个专家各调用一次，也不是top-2就调用两倍次数；top-k主要改变数据条数。
+
+本卡路由 $T_{local}$ 个token，产生 $T_{local}k$ 个assignment，其hidden数据大小为 $R=T_{local}kHb$。假设所有assignment都执行、专家均匀放置、每个来源rank的assignment均匀分布到各EP rank、无padding／合并同目的地重复token，本地比例为 $1/e$，远端比例为 $(e-1)/e$：
+
+$$V_{EP,fwd}\approx2\frac{e-1}{e}R,\qquad V_{EP,train}\approx4\frac{e-1}{e}R$$
+
+均为**每MoE层、每microbatch、每卡预计发送量**，训练式假设激活与激活梯度同精度；全组乘 $e$。Combine单卡发送量取决于它接到的专家任务，因此只有均衡时才能用同一单卡估计。
+
+**带算例：** $T_{local}=1024,k=2,H=4096,b=2,e=8$，则 $R=16$ MiB；单次dispatch预计发送14 MiB，前向28 MiB，训练56 MiB，全组训练448 MiB。
+
+“总体专家负载均衡”本身不足以推出远端比例：各卡只路由本地专家也可能均衡，却没有远端流量。
+
+路由集中到少数卡时会产生热点和等待；capacity、丢弃、padding、跨节点去重／合并会改变通信量。EP还存在All-Gather或融合dispatcher，**不能说所有EP必然是4次All-to-All**。$T_{local}$ 用进入Router的实际token数，组合TP/SP/CP时不要盲目重复除以并行度。
+
+依据：[Megatron MoE的dispatcher与负载均衡](https://github.com/NVIDIA/Megatron-LM/blob/main/megatron/core/transformer/moe/README.md)。
+
+### ⑭ DP/DDP：一次“梯度同步”，可能有多个AR调用
+
+普通DDP主要同步**参数梯度**，不是每层传hidden state。设本卡、当前DP组所复制的参数有 $N_{local}$ 个，梯度通信每元素 $b_g$ byte，梯度总数据为 $M_g=N_{local}b_g$。这是**梯度buffer大小**，不是实际网络发送量；也不要与前面全局batch符号 $G$ 混淆。
+
+一次完整梯度同步，按Ring估算每卡发送：
+
+$$V_{DP,sync}=2\frac{D-1}{D}M_g$$
+
+若梯度分成 $n_b$ 个桶，每桶各做一次AR，那么一次完整同步包含 **$n_b$ 次AR**。各桶大小加起来是 $M_g$，理想有效字节总量仍按上式算，不能把整份 $M_g$ 再乘桶数。
+
+| 一次参数更新累计 $K$ 批 | 完整同步轮数 | AR调用数 |
+| --- | --- | --- |
+| 每批反向都同步 | $K$ | $Kn_b$ |
+| 前 $K-1$ 批正确使用no_sync，只在最后同步 | 1 | $n_b$ |
+
+**梯度累积不会自动保证只同步一次。** PyTorch的no_sync上下文须覆盖相应microbatch的前向和反向。 普通DDP前向通常没有这里计入的参数梯度AR，但初始化广播、buffer同步等仍可能存在；ZeRO/FSDP分片参数还有额外AG／RS，不能套普通DDP的完整通信结论。
+
+**带算例：** $D=4,M_g=128$ MiB，分4桶、累积8批。每次完整同步每卡发送192 MiB；只在最后同步时，4次AR、192 MiB。若每批都同步，32次AR、1536 MiB。
+
+通信量看被同步的参数梯度规模；固定模型与同步频率时，不能仅因 $B$ 翻倍就把DP梯度通信量翻倍。混合并行中的稠密参数和专家参数可能使用不同DP组，应分别按其参数数目、组大小和同步策略计算。
+
+依据：[PyTorch DDP的梯度桶](https://docs.pytorch.org/docs/stable/notes/ddp)、[梯度累积与no_sync](https://docs.pytorch.org/tutorials/recipes/recipes/tuning_guide.html)。
+
+### ⑮ 一张表记次数，一张表查字节数
+
+**次数表：均采用上面明确的教学模型。** “训练”指一次前向＋对应反向，不含额外模型重计算；基础SP与重取输入变体分开看。
+
+| 策略与统计范围 | 前向 | 反向 | 训练合计 |
+| --- | --- | --- | --- |
+| TP：每层、每microbatch | 2 AR | 2 AR | **4 AR** |
+| TP＋SP基础模型：同上 | 2 AG＋2 RS | 2 AG＋2 RS | **4 AG＋4 RS** |
+| TP＋SP，两处重取输入：同上 | 2 AG＋2 RS | 4 AG＋2 RS | **6 AG＋4 RS** |
+| PP：一批走完整条流水线 | $p-1$ 条P2P消息 | $p-1$ 条P2P消息 | **$2(p-1)$ 条消息** |
+| CP：每Attention层、每批 | 1次KV收集；简单环有 $c-1$ 轮 | KV重取＋梯度RS | **3个逻辑通信阶段**，不是3条消息 |
+| EP：标准All-to-All，每MoE层、每批 | 2 All-to-All | 2 All-to-All | **4 All-to-All** |
+| 普通DDP：一次完整梯度同步 | 不计初始化等 | 每个梯度桶1 AR | **$n_b$ AR**；是否乘K看同步策略 |
+
+为缩短字节数表，定义 $f(r)=(r-1)/r$；$A=BSHb$，$A_{KV}=2BSH_{kv}b$，$R=T_{local}kHb$，$M_g=N_{local}b_g$。除PP外都是**每卡发送量**；正反向激活同精度。
+
+| 策略 | 前向发送 | 反向发送 | 前向＋反向发送 |
+| --- | --- | --- | --- |
+| TP | $4f(t)A$ | $4f(t)A$ | $8f(t)A$ |
+| TP＋SP基础模型 | $4f(t)A$ | $4f(t)A$ | $8f(t)A$ |
+| TP＋SP，两处重取输入 | $4f(t)A$ | $6f(t)A$ | $10f(t)A$ |
+| **PP：整条流水线** | $(p-1)A$ | $(p-1)A$ | $2(p-1)A$ |
+| CP：反向重取KV模型 | $f(c)A_{KV}$ | 约 $2f(c)A_{KV}$ | 约 $3f(c)A_{KV}$ |
+| EP：各来源均匀路由模型 | 约 $2f(e)R$ | 约 $2f(e)R$ | 约 $4f(e)R$ |
+| 普通DDP：一次完整梯度同步 | 此处记0 | $2f(D)M_g$ | $2f(D)M_g$ |
+
+**拿到题目按四步做：** ①确定统计对象（每卡还是全组）；②算实际张量大小；③数算子／边界／同步轮次；④乘层数、microbatch数等题设范围。不要在一张表里把PP全组与TP单卡直接比较。
+
+混合并行时先画分组：TP＋CP中，TP操作常使用所在CP分片的序列长度 $S/c$；CP使用该rank实际KV头宽度，GQA头复制时不能机械除以TP度；PP按实际边界张量算；DP分别算各类参数的归约组。**不要把DP、TP、PP、CP、EP度全部相乘，或把各策略的“完整张量”公式直接相加。**
+
+通信字节少也不保证更快：调用延迟、有效带宽、拓扑、负载不均衡以及通信计算重叠都会影响耗时。上述公式与算例用于明确题设下的手算，不是所有后端的运行日志承诺。
 
 ## 4. Attention与KV cache为什么存在
 
@@ -396,4 +627,4 @@ $$T_{\mathrm{total}}=P+Nt$$
 资料：[推理指标](https://docs.nvidia.com/nim/benchmarking/llm/1.0.0/metrics)、[FlashAttention论文](https://arxiv.org/abs/2205.14135)、[MoE说明](https://huggingface.co/blog/moe)。
 
 
-**合上讲义自检：** 显存有哪些项？DP／TP／PP分别切什么？KV公式的2与头数是什么意思？延迟和吞吐差在哪？
+**合上讲义自检：** 显存有哪些项？DP／TP／PP／SP／CP／EP分别切什么？通信次数、Ring轮数、发送字节数如何区分？KV公式的2与头数是什么意思？延迟和吞吐差在哪？
