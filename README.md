@@ -1,6 +1,6 @@
 # AI基础与工程笔记
 
-从数学、机器学习到模型训练、AI Infra与Agent工程的中文开放学习笔记，配图解、逐步计算和176道交互练习。
+从数学、机器学习到模型训练、AI Infra与Agent工程的中文开放学习笔记，配图解、逐步计算和208道交互练习。
 
 **在线阅读：https://pyq623.github.io/ai-study-notes/**
 
@@ -13,6 +13,7 @@
 | 单元5 · AI Infra基础 | 28 |
 | 单元6 · 数据结构与算法 | 32 |
 | 单元7 · 计算机系统基础 | 8 |
+| 单元8 · 强化学习与偏好优化算法 | 32 |
 | 工程专题 · Agent、上下文与工程实践 | 48 |
 
 全站可相互跳转，首页支持章节标题搜索，相关知识点提供跨章链接。题目支持判分、逐项解析、错题筛选与JSON导出。答题记录只保存在读者当前浏览器，不上传、不跨设备同步；本地文件版记录不会自动迁移，目前没有导入功能。
@@ -37,10 +38,10 @@ python3 -m http.server 8000 --directory docs
 
 ## 修改内容
 
-- `content/unit-1.md` ～ `unit-7.md`：七个基础单元。
+- `content/unit-1.md` ～ `unit-8.md`：八个主题单元。
 - `content/engineering.md`：工程专题。
 - `content/*-questions.json`：题目、正确选项、逐项解析与回看锚点。新增题目请追加ID，不重排已有题号，以保留读者记录。
-- `assets/tree-*.svg`：教学图示。
+- `assets/tree-*.svg`、`rl-*.svg`：教学图示。
 - `scripts/build.py`：页面、章节锚点、练习入口和跨章链接。
 - `assets/quiz.js`、`site.js`、`course.css`：练习、导航与样式。
 
@@ -53,6 +54,8 @@ python3 -m http.server 8000 --directory docs
 单元5原有内容拆为单元5～7，保留全部题号；旧链接会定位到新小节。网页版本已有答题记录按题号继续读取，工程专题的记录保持独立；该兼容不涉及本地文件版或跨设备同步。
 
 `content/legacy-unit-5-links.json`保存旧锚点映射。`scripts/build.py`中的`STORAGE`指定固定存储键，不要随单元编号调整：工程专题保留旧unit-6-v2键，新单元6使用unit-6-v3；单元6、7从旧unit-5-v2读取对应题目作为回退，新记录优先。
+
+新增单元8使用`content/rl-questions.json`，题号8-01～8-32。内部课程ID独立于展示编号：工程专题仍为8，新单元8为9；构建器的`FILES`、`LABELS`和`STORAGE`分别指定网页、展示名称与记录存储，保持旧记录兼容。
 
 ## 许可
 

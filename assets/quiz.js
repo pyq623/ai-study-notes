@@ -38,6 +38,6 @@ document.getElementById('questions').addEventListener('click',e=>{
 });
 scope.addEventListener('change',applyFilter);
 document.getElementById('export').addEventListener('click',()=>{
- const blob=new Blob([JSON.stringify({unit:UNIT,exportedAt:new Date().toISOString(),records:state},null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='AI笔记-'+(UNIT===8?'工程专题':'单元'+UNIT)+'-答题记录.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+ const blob=new Blob([JSON.stringify({unit:UNIT,exportedAt:new Date().toISOString(),records:state},null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='AI笔记-'+(DATA.label||(UNIT===8?'工程专题':'单元'+UNIT))+'-答题记录.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
 });
 stats();applyFilter();

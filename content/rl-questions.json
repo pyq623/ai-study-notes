@@ -1,0 +1,674 @@
+[
+  {
+    "id": "8-01",
+    "unit": 9,
+    "lesson": 1,
+    "review_anchor": "lesson-1-step-2",
+    "stem": "某回答有2个有效response token，其条件概率分别为1/2、1/4。按序列log-prob求和，结果约为多少？",
+    "options": [
+      "−0.75",
+      "−2.079",
+      "−1.040",
+      "0.125"
+    ],
+    "answer": "B",
+    "explanations": [
+      "A错误：概率不应直接相加取负。",
+      "B正确：回答概率为(1/2)×(1/4)=1/8，log-prob=log(1/8)=−log8≈−2.079。",
+      "C错误：这是两个token log-prob的平均值；题设要求求和。",
+      "D错误：0.125是回答概率，不是它的对数。"
+    ],
+    "type": "单选"
+  },
+  {
+    "id": "8-02",
+    "unit": 9,
+    "lesson": 1,
+    "review_anchor": "lesson-1-step-2",
+    "stem": "在本单元的LLM回答训练设置中，哪些描述正确？",
+    "options": [
+      "状态包含prompt和已生成前缀，动作是当前目标token",
+      "计算response loss时，应把prompt和padding都算入分母",
+      "给定回答可用teacher forcing计算其token log-prob",
+      "log_softmax后应取实际目标token对应的值"
+    ],
+    "answer": "ACD",
+    "explanations": [
+      "A正确：当前状态决定下一个token的分布。",
+      "B错误：本设置只对有效response token计loss及聚合分母，prompt仍是条件上下文。",
+      "C正确：评分给定回答不要求模型重新自由采样出相同文本。",
+      "D正确：需要目标token的条件log概率，不是所有词表log概率直接求和。"
+    ],
+    "type": "多选"
+  },
+  {
+    "id": "8-03",
+    "unit": 9,
+    "lesson": 2,
+    "review_anchor": "lesson-2-step-1",
+    "stem": "从当前步到正常终止的奖励依次为(1,2,4)，折扣γ=0.5。当前采样回报G_t是多少？",
+    "options": [
+      "1",
+      "7",
+      "3",
+      "3.5"
+    ],
+    "answer": "C",
+    "explanations": [
+      "A错误：1只是即时奖励。",
+      "B错误：7是未折扣之和。",
+      "C正确：G_t=1+0.5×2+0.5²×4=3。",
+      "D错误：各步折扣依次为1、γ、γ²，按此计算是3。"
+    ],
+    "type": "单选"
+  },
+  {
+    "id": "8-04",
+    "unit": 9,
+    "lesson": 2,
+    "review_anchor": "lesson-2-step-2",
+    "stem": "同一策略在状态s的V(s)=8，两个动作的Q分别为10与6。它们的精确Advantage分别是多少？",
+    "options": [
+      "2与−2",
+      "10与6",
+      "18与14",
+      "−2与2"
+    ],
+    "answer": "A",
+    "explanations": [
+      "A正确：A(s,a)=Q(s,a)−V(s)，分别为10−8与6−8。",
+      "B错误：Q不是Advantage，还应减去状态价值。",
+      "C错误：定义采用相减而非相加。",
+      "D错误：减法方向应为Q−V。"
+    ],
+    "type": "单选"
+  },
+  {
+    "id": "8-05",
+    "unit": 9,
+    "lesson": 2,
+    "review_anchor": "lesson-2-step-2",
+    "stem": "关于策略梯度中的baseline，哪些说法正确？",
+    "options": [
+      "REINFORCE不能直接用采样回报更新",
+      "给定状态，baseline不依赖当前动作且作为固定权重时，其梯度项期望为0",
+      "baseline通常用于降低梯度估计的采样方差",
+      "一次采样回报G_t就是精确Q(s_t,a_t)"
+    ],
+    "answer": "BC",
+    "explanations": [
+      "A错误：可以直接用回报；baseline不是策略梯度能工作的必要条件。",
+      "B正确：E[b(s)∇logπ]=b(s)∇Σ_aπ(a|s)=0，在给定条件下成立。",
+      "C正确：合适的baseline能降低方差，价值函数是常用选择。",
+      "D错误：Q是条件期望，一次采样只是估计。"
+    ],
+    "type": "多选"
+  },
+  {
+    "id": "8-06",
+    "unit": 9,
+    "lesson": 3,
+    "review_anchor": "lesson-3-step-1",
+    "stem": "当前旧价值V_old(s_t)=5，即时奖励2，γ=0.9。若这一步是任务真正终止，即使模型对终止后状态输出6，TD error应是多少？",
+    "options": [
+      "2.4",
+      "−3",
+      "0.4",
+      "7.4"
+    ],
+    "answer": "B",
+    "explanations": [
+      "A错误：2+0.9×6−5=2.4用于非终止且应bootstrap的转移。",
+      "B正确：真正终止的后续价值取0，δ=2+0−5=−3。",
+      "C错误：终止mask去掉整个后续价值项，结果是−3。",
+      "D错误：没有正确减去当前价值并处理终止。"
+    ],
+    "type": "单选"
+  },
+  {
+    "id": "8-07",
+    "unit": 9,
+    "lesson": 3,
+    "review_anchor": "lesson-3-step-2",
+    "stem": "两步正常终止轨迹的TD error为δ₀=1、δ₁=2，γ=0.9、λ=0.5。GAE (A₀,A₁)是多少？",
+    "options": [
+      "(3,2)",
+      "(1,2)",
+      "(1.9,2)",
+      "(2.8,2)"
+    ],
+    "answer": "C",
+    "explanations": [
+      "A错误：未来TD error需乘γλ=0.45。",
+      "B错误：λ不为0，第一步还应累积未来误差。",
+      "C正确：先A₁=2，再A₀=1+0.9×0.5×2=1.9。",
+      "D错误：2.8只乘γ，漏掉λ。"
+    ],
+    "type": "单选"
+  },
+  {
+    "id": "8-08",
+    "unit": 9,
+    "lesson": 3,
+    "review_anchor": "lesson-3-step-2",
+    "stem": "关于GAE的两个参数与边界，哪些说法正确？",
+    "options": [
+      "λ=0时，GAE退化为当前TD error",
+      "λ=1时，无论轨迹是否截断都可直接忽略末端bootstrap",
+      "正常终止、末状态价值为0时，λ=1得到G_t−V_old(s_t)",
+      "γ控制奖励折扣，λ控制多步估计的混合"
+    ],
+    "answer": "ACD",
+    "explanations": [
+      "A正确：此时递推中的未来项系数γλ为0。",
+      "B错误：截断末端可能需要bootstrap，不能一律丢弃。",
+      "C正确：将TD error加权展开，中间价值项抵消。",
+      "D正确：两者同时出现在GAE权重中，但定义与作用不同。"
+    ],
+    "type": "多选"
+  },
+  {
+    "id": "8-09",
+    "unit": 9,
+    "lesson": 3,
+    "review_anchor": "lesson-3-step-2",
+    "stem": "采样时旧价值为2，未标准化GAE为3；Actor所用优势后来被标准化为1。按本单元方法，固定value target是多少？",
+    "options": [
+      "1",
+      "3",
+      "4",
+      "5"
+    ],
+    "answer": "D",
+    "explanations": [
+      "A错误：标准化后的Actor优势不是value target。",
+      "B错误：原始GAE还需加回旧价值。",
+      "C错误：不能把两个GAE版本混用相加。",
+      "D正确：先用原始GAE构造R_hat=3+2=5；Actor后续标准化不改变这个固定目标。"
+    ],
+    "type": "单选"
+  },
+  {
+    "id": "8-10",
+    "unit": 9,
+    "lesson": 4,
+    "review_anchor": "lesson-4-step-1",
+    "stem": "同一token的old log-prob为−1.5，current log-prob为−1.3。PPO比率ρ约为多少？",
+    "options": [
+      "0.867",
+      "1.221",
+      "−0.2",
+      "0.819"
+    ],
+    "answer": "B",
+    "explanations": [
+      "A错误：不能相除两个log-prob。",
+      "B正确：ρ=exp(−1.3−(−1.5))=exp(0.2)≈1.221。",
+      "C错误：0.2是log比率，还需取指数且符号为正。",
+      "D错误：0.819≈exp(−0.2)，把分子分母颠倒了。"
+    ],
+    "type": "单选"
+  },
+  {
+    "id": "8-11",
+    "unit": 9,
+    "lesson": 4,
+    "review_anchor": "lesson-4-step-2",
+    "stem": "PPO中A=2、ρ=1.4、ε=0.2。S=min(ρA,clip(ρ)A)，policy loss=−S。二者分别是多少？",
+    "options": [
+      "2.8、−2.8",
+      "1.2、−1.2",
+      "2.4、−2.4",
+      "−2.4、2.4"
+    ],
+    "answer": "C",
+    "explanations": [
+      "A错误：原始项2.8与裁剪项2.4取较小的2.4。",
+      "B错误：clip后的比率1.2还需乘A=2。",
+      "C正确：clip(1.4)=1.2，S=min(2.8,2.4)=2.4，loss取负。",
+      "D错误：正优势对应此处S为正，loss为负。"
+    ],
+    "type": "单选"
+  },
+  {
+    "id": "8-12",
+    "unit": 9,
+    "lesson": 4,
+    "review_anchor": "lesson-4-step-2",
+    "stem": "PPO中A=−2、ρ=0.6、ε=0.2。S与policy loss=−S分别是多少？",
+    "options": [
+      "−1.6、1.6",
+      "−1.2、1.2",
+      "1.6、−1.6",
+      "−0.8、0.8"
+    ],
+    "answer": "A",
+    "explanations": [
+      "A正确：原始项−1.2，裁剪项0.8×(−2)=−1.6，min为−1.6。",
+      "B错误：负数比较不能取绝对值较小的项；−1.6更小。",
+      "C错误：优势为负，两候选S项均为负。",
+      "D错误：漏乘了优势幅度2。"
+    ],
+    "type": "单选"
+  },
+  {
+    "id": "8-13",
+    "unit": 9,
+    "lesson": 4,
+    "review_anchor": "lesson-4-step-2",
+    "stem": "关于PPO-Clip，哪些判断正确？",
+    "options": [
+      "ε=0.2保证训练后每个动作的真实概率变化不超过20%",
+      "A>0且ρ<0.8时，min可选择未裁剪项继续纠正概率下降",
+      "A<0且ρ>1.2时，min可选择未裁剪项继续纠正概率上升",
+      "裁剪代理目标不等价于对真实KL施加一个硬上界"
+    ],
+    "answer": "BCD",
+    "explanations": [
+      "A错误：clip改变目标的激励，真实比率仍可能越界。",
+      "B正确：例如A=1、ρ=0.6时min(0.6,0.8)=0.6。",
+      "C正确：例如A=−1、ρ=1.3时min(−1.3,−1.2)=−1.3。",
+      "D正确：多个样本、共享参数和其他loss都可能继续改变策略分布。"
+    ],
+    "type": "多选"
+  },
+  {
+    "id": "8-14",
+    "unit": 9,
+    "lesson": 5,
+    "review_anchor": "lesson-5-step-1",
+    "stem": "本单元的一轮PPO训练中，哪些做法合理？",
+    "options": [
+      "固定本批old log-prob与已算好的Advantage，重新计算current log-prob",
+      "把Reward Model的评分直接当作它预测的状态价值",
+      "用固定value target训练Critic，并更新Actor",
+      "永远重复训练最初一批rollout而不刷新采样策略"
+    ],
+    "answer": "AC",
+    "explanations": [
+      "A正确：分母和权重固定，当前策略随着minibatch更新而变化。",
+      "B错误：Reward Model负责评价结果／偏好，Critic负责预测状态未来回报，职责不同。",
+      "C正确：这是本单元Actor–Critic版本的两部分学习任务。",
+      "D错误：PPO使用近期rollout做有限轮更新，之后应重新采样。"
+    ],
+    "type": "多选"
+  },
+  {
+    "id": "8-15",
+    "unit": 9,
+    "lesson": 5,
+    "review_anchor": "lesson-5-step-1",
+    "stem": "给定PPO代理项S=1.2、新价值3、固定target5、熵H=0.5，c_v=0.5、c_e=0.1。用L=−S+c_v×(V−target)²/2−c_eH，总loss是多少？",
+    "options": [
+      "−1.25",
+      "0.75",
+      "0.25",
+      "−0.25"
+    ],
+    "answer": "D",
+    "explanations": [
+      "A错误：漏掉value loss。",
+      "B错误：value项为0.5×(4/2)=1，不是2。",
+      "C错误：熵奖励在最小化loss里取负号，正确总和为−0.25。",
+      "D正确：value loss=(3−5)²/2=2，L=−1.2+1−0.05=−0.25。"
+    ],
+    "type": "单选"
+  },
+  {
+    "id": "8-16",
+    "unit": 9,
+    "lesson": 5,
+    "review_anchor": "lesson-5-step-2",
+    "stem": "关于熵与训练监控，哪些说法正确？",
+    "options": [
+      "精确策略熵是在当前状态对整个词表分布计算的−Σp log p",
+      "最小化loss时，正熵奖励通常以−c_eH加入",
+      "固定old采样token的−logπ_current直接反传，总能得到精确当前熵梯度",
+      "clip fraction很低，不能单凭它断定模型没学到东西"
+    ],
+    "answer": "ABD",
+    "explanations": [
+      "A正确：它描述整个动作分布的不确定性。",
+      "B正确：负号使最小化loss倾向提高熵，但权重须按任务选择。",
+      "C错误：采样分布与梯度处理都需检查，这不是自动成立的等价。",
+      "D正确：还需结合reward、KL、熵、采样与学习率等信息。"
+    ],
+    "type": "多选"
+  },
+  {
+    "id": "8-17",
+    "unit": 9,
+    "lesson": 6,
+    "review_anchor": "lesson-6-step-1",
+    "stem": "固定状态下current=(1/2,1/2)，reference=(3/4,1/4)。精确KL(current∥reference)约为多少？",
+    "options": [
+      "−0.405",
+      "0",
+      "0.144",
+      "0.693"
+    ],
+    "answer": "C",
+    "explanations": [
+      "A错误：这是第一个动作的log比，不是完整KL。",
+      "B错误：两个分布不同，KL不为0。",
+      "C正确：KL=0.5 log(2/3)+0.5 log2=0.5 log(4/3)≈0.144。",
+      "D错误：log2只对应第二个动作的log比。"
+    ],
+    "type": "单选"
+  },
+  {
+    "id": "8-18",
+    "unit": 9,
+    "lesson": 6,
+    "review_anchor": "lesson-6-step-1",
+    "stem": "old policy与reference policy有哪些区别？",
+    "options": [
+      "old代表产生本批rollout的行为策略",
+      "reference每个minibatch都必须复制最新Actor参数",
+      "二者起初可以相同，但分别用于新旧比率与参照约束",
+      "一个采样token的current/ref log比可以是负的"
+    ],
+    "answer": "ACD",
+    "explanations": [
+      "A正确：PPO比率分母需要采样时的概率。",
+      "B错误：标准参照约束通常在训练阶段内固定reference，并非每步追随Actor。",
+      "C正确：角色不同，不能因为初始化相同就混用。",
+      "D正确：完整KL非负不意味着每个单独的log比都非负。"
+    ],
+    "type": "多选"
+  },
+  {
+    "id": "8-19",
+    "unit": 9,
+    "lesson": 6,
+    "review_anchor": "lesson-6-step-2",
+    "stem": "GRPO常见KL样本量为k_hat=u−logu−1，其中u=π_ref/π_current。若u=2，结果约为多少？",
+    "options": [
+      "0.693",
+      "−0.307",
+      "1.693",
+      "0.307"
+    ],
+    "answer": "D",
+    "explanations": [
+      "A错误：log2只是其中一项。",
+      "B错误：由logu≤u−1，此样本量非负。",
+      "C错误：公式是u−logu−1，不能把log项改成加号。",
+      "D正确：2−log2−1=1−log2≈0.307。"
+    ],
+    "type": "单选"
+  },
+  {
+    "id": "8-20",
+    "unit": 9,
+    "lesson": 7,
+    "review_anchor": "lesson-7-step-1",
+    "stem": "同一prompt的4条回答奖励为(1,1,0,0)。用总体标准差并忽略极小稳定项，GRPO优势是多少？",
+    "options": [
+      "(1,1,−1,−1)",
+      "(0.5,0.5,−0.5,−0.5)",
+      "(1,1,0,0)",
+      "(2,2,−2,−2)"
+    ],
+    "answer": "A",
+    "explanations": [
+      "A正确：均值0.5，方差0.25，标准差0.5；中心化后再除以0.5。",
+      "B错误：只做了减均值，漏除标准差。",
+      "C错误：原始reward还需中心化与缩放。",
+      "D错误：总体标准差为0.5，不是0.25；0.25是方差。"
+    ],
+    "type": "单选"
+  },
+  {
+    "id": "8-21",
+    "unit": 9,
+    "lesson": 7,
+    "review_anchor": "lesson-7-step-1",
+    "stem": "关于原始终局监督GRPO，哪些说法正确？",
+    "options": [
+      "同回答所有有效token可共享一个组内Advantage，但各自比率仍可不同",
+      "不使用Critic，因此既不需要reward也不需要old log-prob",
+      "奖励全相同时，加正稳定项可得到全0优势，KL等项仍可能更新",
+      "组内标准化一定等于精确且无偏的状态Advantage"
+    ],
+    "answer": "AC",
+    "explanations": [
+      "A正确：奖励、优势、比率是不同层次。",
+      "B错误：组内优势需要reward，新旧比率需要old概率。",
+      "C正确：策略代理项为0不意味着所有正则梯度也为0。",
+      "D错误：组内相对统计并非精确Q−V，也无此无条件保证。"
+    ],
+    "type": "多选"
+  },
+  {
+    "id": "8-22",
+    "unit": 9,
+    "lesson": 7,
+    "review_anchor": "lesson-7-step-2",
+    "stem": "2条等长回答的平均代理项分别为1.1、−0.9；同口径平均KL为0.2，β_KL=0.1。J=平均代理项−β_KL×KL，最小化的L=−J为多少？",
+    "options": [
+      "0.08",
+      "−0.08",
+      "−0.12",
+      "0.10"
+    ],
+    "answer": "B",
+    "explanations": [
+      "A错误：0.08是要最大化的J，loss需取负。",
+      "B正确：代理均值=(1.1−0.9)/2=0.1，J=0.1−0.02=0.08，L=−0.08。",
+      "C错误：KL是从J扣除，不是加到J。",
+      "D错误：漏掉KL且未正确取负。"
+    ],
+    "type": "单选"
+  },
+  {
+    "id": "8-23",
+    "unit": 9,
+    "lesson": 8,
+    "review_anchor": "lesson-8-step-1",
+    "stem": "两条回答长度为2与4，逐token量分别为(1,1)和(3,3,3,3)。回答等权平均与所有有效token等权平均分别是多少？",
+    "options": [
+      "7/3与2",
+      "2与2",
+      "2与7/3",
+      "1与3"
+    ],
+    "answer": "C",
+    "explanations": [
+      "A错误：把两种聚合顺序颠倒了。",
+      "B错误：长度不同且平均值不同，两个分母带来不同结果。",
+      "C正确：回答等权=(1+3)/2=2；token等权=(2+12)/(2+4)=7/3。",
+      "D错误：这只是各回答内部平均，还没有做组聚合。"
+    ],
+    "type": "单选"
+  },
+  {
+    "id": "8-24",
+    "unit": 9,
+    "lesson": 8,
+    "review_anchor": "lesson-8-step-2",
+    "stem": "DAPO式非对称clip取ε_low=0.2、ε_high=0.28。若A=1、ρ=1.3，clip区间与S=min(ρA,clip(ρ)A)分别是什么？",
+    "options": [
+      "[0.8,1.28]、1.28",
+      "[0.72,1.2]、1.2",
+      "[0.2,0.28]、0.28",
+      "[0.8,1.28]、1.3"
+    ],
+    "answer": "A",
+    "explanations": [
+      "A正确：区间下界1−0.2=0.8，上界1+0.28=1.28，正优势取较小的1.28。",
+      "B错误：low与high的作用位置颠倒了。",
+      "C错误：ε是相对1的宽度，不是区间端点本身。",
+      "D错误：原始项1.3与裁剪项1.28应取min。"
+    ],
+    "type": "单选"
+  },
+  {
+    "id": "8-25",
+    "unit": 9,
+    "lesson": 8,
+    "review_anchor": "lesson-8-step-2",
+    "stem": "在本单元介绍的DAPO论文配置下，哪些判断正确？",
+    "options": [
+      "论文的动态采样按组内正确率过滤全对／全错组，继续采样补足有效组",
+      "token级loss聚合意味着终局正确性reward也必须逐token给出",
+      "移除reference KL是特定长推理训练设计，不能推成所有任务都无需KL",
+      "没有Critic仍可使用old/current比率"
+    ],
+    "answer": "ACD",
+    "explanations": [
+      "A正确：论文约束为0<正确回答数<G。仅二元正确性评分时等价于排除零方差组；叠加长度惩罚后，应区分正确性与最终reward方差。",
+      "B错误：终局reward仍可先产生回答级优势，再广播给token。",
+      "C正确：需区分论文任务、实现和目标。",
+      "D正确：优势来源与概率比率分母是两回事。"
+    ],
+    "type": "多选"
+  },
+  {
+    "id": "8-26",
+    "unit": 9,
+    "lesson": 8,
+    "review_anchor": "lesson-8-step-2",
+    "stem": "软长度惩罚取L_max=100、L_cache=20。在80<T≤100时R_len=(80−T)/20；若T=90且正确性reward=1，总reward是多少？",
+    "options": [
+      "1",
+      "−0.5",
+      "−1",
+      "0.5"
+    ],
+    "answer": "D",
+    "explanations": [
+      "A错误：没有计入长度惩罚。",
+      "B错误：−0.5只是长度惩罚，尚未加正确性reward。",
+      "C错误：长度90处惩罚为−0.5，不是−1。",
+      "D正确：R_len=(80−90)/20=−0.5，总reward=1−0.5=0.5。"
+    ],
+    "type": "单选"
+  },
+  {
+    "id": "8-27",
+    "unit": 9,
+    "lesson": 9,
+    "review_anchor": "lesson-9-step-1",
+    "stem": "某回答只有2个token，current/old比率分别为2与1/2。原始GSPO的长度归一化sequence ratio是多少？",
+    "options": [
+      "1.25",
+      "1",
+      "2.5",
+      "0.5"
+    ],
+    "answer": "B",
+    "explanations": [
+      "A错误：1.25是算术平均；GSPO取几何平均。",
+      "B正确：s=(2×1/2)^(1/2)=1。",
+      "C错误：既不求和，也不直接把和当比率。",
+      "D错误：它不是取最小token比率。"
+    ],
+    "type": "单选"
+  },
+  {
+    "id": "8-28",
+    "unit": 9,
+    "lesson": 9,
+    "review_anchor": "lesson-9-step-2",
+    "stem": "某回答2个token的比率为2与1/2，共享A=1，ε=0.2，忽略KL。GRPO该回答的token代理平均与GSPO回答代理值分别是多少？",
+    "options": [
+      "1与1",
+      "1.25与1",
+      "0.85与1",
+      "0.85与1.25"
+    ],
+    "answer": "C",
+    "explanations": [
+      "A错误：GRPO逐token裁剪，第一项只得1.2，第二项0.5，总平均0.85。",
+      "B错误：1.25是未经裁剪的token比率算术平均。",
+      "C正确：GRPO=(min(2,1.2)+min(0.5,0.8))/2=0.85；GSPO用几何平均s=1，得1。",
+      "D错误：GSPO的归一化比率是1，不是算术平均1.25。"
+    ],
+    "type": "单选"
+  },
+  {
+    "id": "8-29",
+    "unit": 9,
+    "lesson": 10,
+    "review_anchor": "lesson-10-step-1",
+    "stem": "标准DPO中current的chosen/rejected序列log-prob为−2/−4，reference为−3/−4，β_DPO=1。z与loss=−logσ(z)约为多少？",
+    "options": [
+      "2与0.127",
+      "1与0.313",
+      "−1与1.313",
+      "0与0.693"
+    ],
+    "answer": "B",
+    "explanations": [
+      "A错误：漏减reference gap=1。",
+      "B正确：current gap=2，ref gap=1，z=1；loss=log(1+e^(−1))≈0.313。",
+      "C错误：差距应为current减reference。",
+      "D错误：当前和reference的gap不同，因此z不为0。"
+    ],
+    "type": "单选"
+  },
+  {
+    "id": "8-30",
+    "unit": 9,
+    "lesson": 10,
+    "review_anchor": "lesson-10-step-1",
+    "stem": "关于标准离线DPO的输入与计算，哪些说法正确？",
+    "options": [
+      "输入可以是prompt、chosen回答、rejected回答组成的固定偏好对",
+      "必须新增一个A/B分类输出头，才能使用logistic loss",
+      "原始序列log-prob对有效response token求和，不含prompt loss",
+      "当前模型与reference相同时，loss约0.693且梯度必定为0"
+    ],
+    "answer": "AC",
+    "explanations": [
+      "A正确：偏好标签给出同prompt下哪条回答更好。",
+      "B错误：sigmoid用于构造成对偏好loss，语言模型仍输出token概率。",
+      "C正确：prompt是条件，response log-prob由目标token条件log-prob相加。",
+      "D错误：z=0的loss为log2，但对gap的导数为−β/2，通常仍有学习信号。"
+    ],
+    "type": "多选"
+  },
+  {
+    "id": "8-31",
+    "unit": 9,
+    "lesson": 10,
+    "review_anchor": "lesson-10-step-2",
+    "stem": "固定DPO reference且数据与分词、截断、mask规则固定时，哪些工程做法合理？",
+    "options": [
+      "预计算并缓存reference的chosen/rejected log-prob",
+      "每个minibatch都把reference替换为当前模型，仍宣称优化原来的固定参考目标",
+      "用no_grad计算reference分数，当前模型分数保留梯度",
+      "把DPO的reference分数直接替换成PPO的old rollout分数总是等价"
+    ],
+    "answer": "AC",
+    "explanations": [
+      "A正确：无需每一步常驻或重复前向完整reference模型，但缓存须与数据处理一致。",
+      "B错误：reference跟随会改变优化目标，并非原固定参考设定。",
+      "C正确：标准设置冻结reference，仅更新当前模型。",
+      "D错误：两者角色不同，数据来源及参照含义也不同。"
+    ],
+    "type": "多选"
+  },
+  {
+    "id": "8-32",
+    "unit": 9,
+    "lesson": 10,
+    "review_anchor": "lesson-10-step-2",
+    "stem": "一对回答的chosen概率从0.4降到0.3，rejected从0.2降到0.1，reference固定。关于这对样本的标准DPO gap与loss，哪项正确？",
+    "options": [
+      "chosen下降，所以current gap必然下降",
+      "current gap不变，因为两概率都下降了",
+      "current gap增大，但loss也必然增大",
+      "current gap从log2增至log3，β>0时该对样本loss下降"
+    ],
+    "answer": "D",
+    "explanations": [
+      "A错误：gap是log(chosen/rejected)，取决于相对比值。",
+      "B错误：比值由2变3，并未保持不变。",
+      "C错误：固定reference、正β下，gap增大会提高z并降低logistic loss。",
+      "D正确：log(0.4/0.2)=log2，log(0.3/0.1)=log3；这不保证chosen绝对概率上升。"
+    ],
+    "type": "单选"
+  }
+]

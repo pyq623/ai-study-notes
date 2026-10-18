@@ -9,7 +9,7 @@ import unittest
 
 ROOT=Path(__file__).resolve().parents[1]
 DOCS=ROOT/'docs'
-CHAPTERS=[f'unit-{i}.html' for i in range(1,8)]+['engineering.html']
+CHAPTERS=[f'unit-{i}.html' for i in range(1,9)]+['engineering.html']
 
 class Page(HTMLParser):
     def __init__(self,path):
@@ -69,7 +69,7 @@ class SiteTests(unittest.TestCase):
         for name in CHAPTERS:
             page=self.pages[name]
             data=json.loads(re.search(r'<script id="quiz-data" type="application/json">(.*?)</script>',page.text,re.S).group(1))
-            expected=json.loads((ROOT/'content'/('engineering-questions.json' if data['unit']==8 else 'foundation-questions.json')).read_text())
+            expected=json.loads((ROOT/'content'/('engineering-questions.json' if data['unit']==8 else 'rl-questions.json' if data['unit']==9 else 'foundation-questions.json')).read_text())
             expected=[q for q in expected if q['unit']==data['unit']]
             self.assertEqual(len(data['questions']),len(expected));total+=len(expected)
             for q,original in zip(data['questions'],expected):
@@ -78,7 +78,7 @@ class SiteTests(unittest.TestCase):
                 self.assertEqual(len(q['options']),4);self.assertEqual(len(q['explanations']),4)
                 self.assertTrue(q['answer'] and set(q['answer'])<=set('ABCD'))
                 self.assertIn(q.get('review_anchor','lesson-'+str(q['lesson'])),page.ids)
-        self.assertEqual(total,176)
+        self.assertEqual(total,208)
     def test_search_targets(self):
         data=json.loads(re.search(r'<script id="search-data" type="application/json">(.*?)</script>',self.pages['index.html'].text,re.S).group(1))
         self.assertGreater(len(data),100)
@@ -116,12 +116,12 @@ class SiteTests(unittest.TestCase):
     def test_split_preserves_every_question(self):
         expected=json.loads((ROOT/'tests/question-fingerprints.json').read_text())
         actual={}
-        for file in ['foundation-questions.json','engineering-questions.json']:
+        for file in ['foundation-questions.json','engineering-questions.json','rl-questions.json']:
             for q in json.loads((ROOT/'content'/file).read_text()):
                 self.assertNotIn(q['id'],actual)
                 actual[q['id']]=hashlib.sha256(json.dumps({k:q[k] for k in ('stem','type','options','answer','explanations')},ensure_ascii=False,sort_keys=True).encode()).hexdigest()
         self.assertEqual({k:actual[k] for k in expected},expected)
-        self.assertEqual(set(actual)-set(expected),{f'5-{n}' for n in range(51,69)})
+        self.assertEqual(set(actual)-set(expected),{f'8-{n:02}' for n in range(1,33)})
     def test_infra_exercises_follow_their_topics(self):
         questions=json.loads((ROOT/'content/foundation-questions.json').read_text())
         for q in questions:
@@ -129,8 +129,22 @@ class SiteTests(unittest.TestCase):
             section=self.pages['unit-5.html'].text.split(f'<h3 id="{q["review_anchor"]}">')[1].split('<h3 id=')[0].split('<h2 id=')[0]
             self.assertIn(f'href="#q-{q["id"]}"',section)
         for page in self.pages.values():
-            self.assertIn('176道',page.text)
+            self.assertIn('208道',page.text)
             self.assertNotIn('158道',page.text)
+
+    def test_rl_unit_labels_neighbors_and_topic_practice(self):
+        page=self.pages['unit-8.html']
+        data=json.loads(re.search(r'<script id="quiz-data" type="application/json">(.*?)</script>',page.text,re.S).group(1))
+        self.assertEqual(data['label'],'单元8')
+        self.assertEqual(data['storage_key'],'ai-study-notes-unit-8-v2')
+        self.assertEqual(len(data['questions']),32)
+        for q in data['questions']:
+            section=page.text.split(f'<h3 id="{q["review_anchor"]}">')[1].split('<h3 id=')[0].split('<h2 id=')[0]
+            self.assertIn(f'href="#q-{q["id"]}"',section)
+        self.assertIn('href="unit-8.html">下一章：强化学习与偏好优化算法',self.pages['unit-7.html'].text)
+        self.assertIn('href="engineering.html">下一章：工程专题',page.text)
+        self.assertIn('href="unit-8.html">← 上一章',self.pages['engineering.html'].text)
+        self.assertIn('>单元8</a>',self.pages['index.html'].text)
 
     def test_split_chapter_boundaries(self):
         infra=(ROOT/'content/unit-5.md').read_text()
@@ -159,13 +173,13 @@ class SiteTests(unittest.TestCase):
         self.assertEqual(mapping['lesson-11-step-4'],'unit-7.html#lesson-3-step-2')
     def test_progress_uses_disjoint_questions_and_storage(self):
         data=json.loads(re.search(r'<script id="progress-data" type="application/json">(.*?)</script>',self.pages['index.html'].text,re.S).group(1))
-        self.assertEqual([len(x['question_ids']) for x in data],[14,16,15,15,28,32,8,48])
-        self.assertEqual(len({x['storage_key'] for x in data}),8)
+        self.assertEqual([len(x['question_ids']) for x in data],[14,16,15,15,28,32,8,32,48])
+        self.assertEqual(len({x['storage_key'] for x in data}),9)
         self.assertEqual(data[-1]['storage_key'],'ai-study-notes-unit-6-v2')
         all_ids=[qid for x in data for qid in x['question_ids']]
-        self.assertEqual(len(set(all_ids)),176)
+        self.assertEqual(len(set(all_ids)),208)
         for x in data:
-            file=f"unit-{x['unit']}.html" if x['unit']<8 else 'engineering.html'
+            file=x['url']
             quiz=json.loads(re.search(r'<script id="quiz-data" type="application/json">(.*?)</script>',self.pages[file].text,re.S).group(1))
             self.assertEqual(quiz['storage_key'],x['storage_key'])
             self.assertEqual(quiz.get('legacy_storage_key'),x.get('legacy_storage_key'))
@@ -173,6 +187,6 @@ class SiteTests(unittest.TestCase):
         for name,page in self.pages.items():
             self.assertTrue(all(not urlsplit(r).scheme for r in page.resources),name)
     def test_readme_counts(self):
-        self.assertIn('176', (ROOT/'README.md').read_text())
+        self.assertIn('208', (ROOT/'README.md').read_text())
 
 if __name__=='__main__':unittest.main()

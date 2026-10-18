@@ -6,12 +6,23 @@ require('../assets/records.js');
 const records = globalThis.StudyRecords;
 const data = file => JSON.parse(fs.readFileSync(`docs/${file}.html`,'utf8').match(/<script id="quiz-data" type="application\/json">(.*?)<\/script>/s)[1]);
 const infra=data('unit-5'), ds=data('unit-6'), systems=data('unit-7'), engineering=data('engineering');
+const rl=data('unit-8');
 function storage(values={}) {
   const store = new Map(Object.entries(values).map(([key,value])=>[key,JSON.stringify(value)]));
   return {getItem:key=>store.get(key)??null,setItem:(key,value)=>store.set(key,value)};
 }
 const answer={selected:['B'],submitted:true,last:true,first:false,confidence:'sure',attempts:3};
 const read=(store,config)=>records.read(store,config,config.questions.map(q=>q.id));
+test('new displayed unit 8 keeps its identity and saved records separate from engineering',()=>{
+  const store=storage({[engineering.storage_key]:{'E-08':answer},[rl.storage_key]:{'8-01':answer}});
+  assert.equal(rl.label,'单元8');
+  assert.equal(engineering.label,'工程专题');
+  assert.equal(engineering.unit,8);
+  assert.notEqual(rl.unit,engineering.unit);
+  assert.notEqual(rl.storage_key,engineering.storage_key);
+  assert.deepEqual(Object.keys(read(store,rl).records),['8-01']);
+  assert.deepEqual(Object.keys(read(store,engineering).records),['E-08']);
+});
 test('reads previous answers by question ID and isolates engineering from new unit 6',()=>{
   const store=storage({[infra.storage_key]:{'5-01':answer,'5-39':answer,'5-48':answer},[engineering.storage_key]:{'E-08':answer}});
   assert.deepEqual(Object.keys(read(store,infra).records),['5-01']);

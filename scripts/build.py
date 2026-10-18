@@ -13,7 +13,8 @@ OUT = ROOT / 'docs'
 CONTENT = ROOT / 'content'
 REPO = 'https://github.com/pyq623/ai-study-notes'
 TITLE = 'AI基础与工程笔记'
-TOTAL_QUESTIONS = sum(len(json.loads((CONTENT / name).read_text())) for name in ('foundation-questions.json', 'engineering-questions.json'))
+QUESTION_FILES = ('foundation-questions.json', 'rl-questions.json', 'engineering-questions.json')
+TOTAL_QUESTIONS = sum(len(json.loads((CONTENT / name).read_text())) for name in QUESTION_FILES)
 MATH = re.compile(r'\$\$([\s\S]*?)\$\$|(?<!\$)\$([^\n$]+?)\$(?!\$)')
 COURSES = [
     (1, '机器学习入门', '从样本、特征和标签，到近邻、聚类与模型评估。'),
@@ -23,20 +24,26 @@ COURSES = [
     (5, 'AI Infra基础', '显存估算、并行训练、通信算子、KV cache与推理性能。'),
     (6, '数据结构与算法', '复杂度、数组与链表、树与图、排序，以及B-tree与B+树。'),
     (7, '计算机系统基础', '线程与锁、TCP与HTTP、数据库索引、缓存与消息重试。'),
+    (9, '强化学习与偏好优化算法', 'Advantage、GAE、PPO、GRPO、DAPO、GSPO与DPO，配公式推导与手算。'),
     (8, '工程专题', 'Agent、工具调用、上下文、RAG、并发与故障恢复。'),
 ]
-FILES = {u: f'unit-{u}' if u < 8 else 'engineering' for u, _, _ in COURSES}
+# IDs are stable identities, not display positions: engineering already owns ID 8.
+FILES = {u: f'unit-{u}' for u, _, _ in COURSES}
+FILES.update({8: 'engineering', 9: 'unit-8'})
+LABELS = {u: f'单元{u}' for u, _, _ in COURSES}
+LABELS.update({8: '工程专题', 9: '单元8'})
 # Storage identity is independent of display order. Engineering keeps its original key.
 STORAGE = {u: {'storage_key': f'ai-study-notes-unit-{u}-v2'} for u,_,_ in COURSES}
 STORAGE[6] = {'storage_key': 'ai-study-notes-unit-6-v3', 'legacy_storage_key': 'ai-study-notes-unit-5-v2'}
 STORAGE[7] = {'storage_key': 'ai-study-notes-unit-7-v2', 'legacy_storage_key': 'ai-study-notes-unit-5-v2'}
 STORAGE[8] = {'storage_key': 'ai-study-notes-unit-6-v2'}
+STORAGE[9] = {'storage_key': 'ai-study-notes-unit-8-v2'}
 RELATED = {
     (1,7):[(3,'lesson-1','概率与统计基础')],
     (2,8):[(4,'lesson-4','反向传播与矩阵梯度')],
-    (3,7):[(4,'lesson-2','Softmax与交叉熵')],
-    (4,2):[(3,'lesson-7','信息论与熵')],
-    (4,5):[(5,'lesson-1','训练状态与显存')],
+    (3,7):[(4,'lesson-2','Softmax与交叉熵'),(9,'lesson-6','策略熵与reference KL')],
+    (4,2):[(3,'lesson-7','信息论与熵'),(9,'lesson-10','DPO的成对偏好loss')],
+    (4,5):[(5,'lesson-1','训练状态与显存'),(9,'lesson-5','PPO的Actor与Critic更新')],
     (4,7):[(5,'lesson-2','数据并行与全局batch')],
     (5,2):[(4,'lesson-5','梯度与优化器')],
     (5,4):[(8,'lesson-3','上下文管理')],
@@ -51,17 +58,22 @@ RELATED = {
     (8,8):[(7,'lesson-1','线程、锁与死锁')],
     (8,10):[(6,'lesson-2','数组、栈、队列与哈希'),(7,'lesson-4','数据库索引')],
     (8,11):[(5,'lesson-5','Prefill、Decode与延迟'),(7,'lesson-3-step-2','HTTP版本与传输')],
+    (9,1):[(4,'lesson-2','Softmax与交叉熵')],
+    (9,5):[(4,'lesson-5','优化器与梯度更新'),(5,'lesson-1','训练状态与显存')],
+    (9,6):[(3,'lesson-7','信息论与KL')],
+    (9,9):[(5,'lesson-5','长回答与MoE训练背景')],
+    (9,10):[(4,'lesson-2','交叉熵与logistic损失')],
 }
 
 def escaped_json(value):
     return json.dumps(value, ensure_ascii=False).replace('<', '\\u003c').replace('&', '\\u0026')
 
 def nav(current=None):
-    links = [('index.html','首页',0)] + [(FILES[u]+'.html',f'单元{u}' if u<8 else '工程专题',u) for u,_,_ in COURSES]
+    links = [('index.html','首页',0)] + [(FILES[u]+'.html',LABELS[u],u) for u,_,_ in COURSES]
     return '<header class="site-header"><a class="brand" href="index.html">'+TITLE+'</a><nav class="site-nav" aria-label="全站导航">'+''.join('<a href="'+url+'"'+(' aria-current="page"' if current==u else '')+'>'+label+'</a>' for url,label,u in links)+'<a href="'+REPO+'">GitHub ↗</a></nav></header>'
 
 def shell(title,body,current=None,scripts='',base=''):
-    return '<!doctype html><html lang="zh-CN"><head><meta charset="utf-8">'+('<base href="'+html.escape(base,quote=True)+'">' if base else '')+'<meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="开放的AI基础与工程学习笔记：七个基础单元、Agent工程专题、'+str(TOTAL_QUESTIONS)+'道练习、图解与手算例题。"><title>'+html.escape(title)+' · '+TITLE+'</title><link rel="stylesheet" href="assets/katex/katex.min.css"><link rel="stylesheet" href="assets/course.css"></head><body><a class="skip-link" href="#main-content">跳到正文</a><div class="wrap">'+nav(current)+body+'<footer class="site-footer"><p>开放学习笔记 · '+str(TOTAL_QUESTIONS)+'道新编教学题 · 非官方题库</p><a href="about.html">关于、来源与许可</a><a href="'+REPO+'/issues">勘误与建议</a><a href="'+REPO+'">查看源码</a><p>答题记录只保存在当前浏览器，不上传服务器；不同设备和域名之间不会自动同步。</p></footer></div>'+scripts+'</body></html>'
+    return '<!doctype html><html lang="zh-CN"><head><meta charset="utf-8">'+('<base href="'+html.escape(base,quote=True)+'">' if base else '')+'<meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="开放的AI基础与工程学习笔记：'+str(len(COURSES)-1)+'个主题单元、Agent工程专题、'+str(TOTAL_QUESTIONS)+'道练习、图解与手算例题。"><title>'+html.escape(title)+' · '+TITLE+'</title><link rel="stylesheet" href="assets/katex/katex.min.css"><link rel="stylesheet" href="assets/course.css"></head><body><a class="skip-link" href="#main-content">跳到正文</a><div class="wrap">'+nav(current)+body+'<footer class="site-footer"><p>开放学习笔记 · '+str(TOTAL_QUESTIONS)+'道新编教学题 · 非官方题库</p><a href="about.html">关于、来源与许可</a><a href="'+REPO+'/issues">勘误与建议</a><a href="'+REPO+'">查看源码</a><p>答题记录只保存在当前浏览器，不上传服务器；不同设备和域名之间不会自动同步。</p></footer></div>'+scripts+'</body></html>'
 
 def build():
     OUT.mkdir(exist_ok=True)
@@ -71,8 +83,8 @@ def build():
     shutil.copy(katex/'LICENSE',OUT/'assets/katex/LICENSE')
     sources={u:(CONTENT/(FILES[u]+'.md')).read_text() for u,_,_ in COURSES}
     banks={u:[] for u,_,_ in COURSES}
-    for q in json.loads((CONTENT/'foundation-questions.json').read_text()):banks[q['unit']].append(q)
-    banks[8]=json.loads((CONTENT/'engineering-questions.json').read_text())
+    for name in QUESTION_FILES:
+        for q in json.loads((CONTENT/name).read_text()):banks[q['unit']].append(q)
     keys=list(dict.fromkeys((m.group(1) is not None,m.group(1) or m.group(2)) for s in list(sources.values())+[text for bank in banks.values() for q in bank for text in [q['stem'],*q['options'],*q['explanations']]] for m in MATH.finditer(s)))
     rendered=subprocess.run(['node',str(ROOT/'scripts/render_math.cjs')],input=json.dumps([{'display':d,'tex':t} for d,t in keys]),text=True,capture_output=True,check=True)
     formulas=dict(zip(keys,json.loads(rendered.stdout)))
@@ -121,7 +133,7 @@ def build():
             svg=(ROOT/'assets'/m.group(1)).read_text()
             width,height=re.search(r'viewBox="0 0 ([0-9.]+) ([0-9.]+)"',svg).groups()
             return f'src="assets/{m.group(1)}" width="{width}" height="{height}" loading="lazy"'
-        body=re.sub(r'src="\.\./assets/(tree-[a-z0-9-]+\.svg)"',diagram,body)
+        body=re.sub(r'src="\.\./assets/((?:tree|rl)-[a-z0-9-]+\.svg)"',diagram,body)
         for key,(display,formula) in slots.items():
             if display:body=body.replace('<p>'+key+'</p>','<div class="math-block">'+formula+'</div>')
             body=body.replace(key,formula)
@@ -132,7 +144,7 @@ def build():
             lesson=int(match.group(1));related=[q for q in banks[u] if q['lesson']==lesson]
             def callout(qs):
                 return '<p class="callout no-print"><strong>读完这个知识点，接着练：</strong> '+' · '.join('<a href="#q-'+q['id']+'">第'+q['id']+'题</a>' for q in qs)+'</p>'
-            if (u==5 and lesson==3) or (u==6 and lesson in (2,3,5)) or (u==7 and lesson in (2,3)):
+            if u==9 or (u==5 and lesson==3) or (u==6 and lesson in (2,3,5)) or (u==7 and lesson in (2,3)):
                 parts=re.split(r'(?=<h3 id="[^"]+">)',section);assigned=set()
                 for j,part in enumerate(parts):
                     step_match=re.match(r'<h3 id="([^"]+)">',part)
@@ -158,19 +170,22 @@ def build():
         if u==8:
             refs=json.loads((CONTENT/'engineering-sources.json').read_text())
             extra='<section id="sources"><h2>工程专题资料来源</h2><p>公开回忆用于确定学习方向，技术资料用于核对概念；题目均为新编教学题。</p><ol class="source-list">'+''.join('<li id="source-'+s['id']+'"><a href="'+html.escape(s['url'],quote=True)+'">'+html.escape(s['id']+' · '+s['title'])+'</a><p>'+html.escape(s['coverage'])+'</p></li>' for s in refs)+'</ol></section>'
-        prev='<a class="button" href="'+(FILES[u-1]+'.html' if u>1 else 'index.html')+'">← '+('上一章' if u>1 else '返回首页')+'</a>'
-        nxt='<a class="button primary" href="'+(FILES[u+1]+'.html' if u<8 else 'index.html')+'">'+('下一章：'+COURSES[u][1] if u<8 else '回到学习总览')+' →</a>'
+        position=next(i for i,course in enumerate(COURSES) if course[0]==u)
+        previous=COURSES[position-1] if position else None
+        following=COURSES[position+1] if position+1<len(COURSES) else None
+        prev='<a class="button" href="'+(FILES[previous[0]]+'.html' if previous else 'index.html')+'">← '+('上一章' if previous else '返回首页')+'</a>'
+        nxt='<a class="button primary" href="'+(FILES[following[0]]+'.html' if following else 'index.html')+'">'+('下一章：'+following[1] if following else '回到学习总览')+' →</a>'
         tools='<div class="page-tools"><a href="#practice">直接做本章练习</a><a href="'+REPO+'/blob/main/content/'+FILES[u]+'.md">查看Markdown源码</a><button type="button" onclick="window.print()">打印／存为PDF</button></div>'
         page=tools+'<div class="course-layout">'+toc_html+'<main id="main-content" class="course-article">'+body+practice+extra+'<div class="unit-navigation">'+prev+nxt+'</div></main></div>'
-        data={'unit':u,'title':title,**STORAGE[u],'questions':[dict(q,answer_html=question_rendering.answer_html(q)) for q in banks[u]]}
+        data={'unit':u,'label':LABELS[u],'title':title,**STORAGE[u],'questions':[dict(q,answer_html=question_rendering.answer_html(q)) for q in banks[u]]}
         scripts='<script id="quiz-data" type="application/json">'+escaped_json(data)+'</script><script src="assets/records.js" defer></script><script src="assets/quiz.js" defer></script><script src="assets/site.js" defer></script>'
         if u==5:scripts='<script id="legacy-links" type="application/json">'+escaped_json(legacy_links)+'</script><script src="assets/legacy-links.js" defer></script>'+scripts
         (OUT/(FILES[u]+'.html')).write_text(shell(title,page,u,scripts))
-    home='<main id="main-content"><section class="hero"><div class="eyebrow">概念 · 图解 · 手算 · 练习</div><h1>AI基础与工程笔记</h1><p class="lead">涵盖数学、机器学习、模型训练、AI Infra、数据结构、计算机系统与Agent工程。结合概念、图解和例题，按你的兴趣与需要选择主题阅读。</p><p class="meta">8部分内容 · '+str(TOTAL_QUESTIONS)+'道新编练习 · 免费阅读，无需登录</p></section><section class="search-panel"><label for="search"><strong>查找知识点</strong></label><p class="meta">例如：特征值、Adam、HTTP、KV cache、互斥</p><input id="search" type="search" placeholder="输入关键词，搜索章节标题" autocomplete="off"><p id="search-status" aria-live="polite"></p><ul id="search-results"></ul></section><div class="home-grid">'
+    home='<main id="main-content"><section class="hero"><div class="eyebrow">概念 · 图解 · 手算 · 练习</div><h1>AI基础与工程笔记</h1><p class="lead">涵盖数学、机器学习、模型训练、AI Infra、数据结构、计算机系统、强化学习与偏好优化、Agent工程。结合概念、图解和例题，按你的兴趣与需要选择主题阅读。</p><p class="meta">'+str(len(COURSES))+'部分内容 · '+str(TOTAL_QUESTIONS)+'道新编练习 · 免费阅读，无需登录</p></section><section class="search-panel"><label for="search"><strong>查找知识点</strong></label><p class="meta">例如：特征值、Adam、PPO、DPO、KV cache、互斥</p><input id="search" type="search" placeholder="输入关键词，搜索章节标题" autocomplete="off"><p id="search-status" aria-live="polite"></p><ul id="search-results"></ul></section><div class="home-grid">'
     for u,title,desc in COURSES:
-        home+='<section class="home-card course-card"><div class="meta">'+('单元 '+str(u) if u<8 else '工程专题')+' · '+str(len(banks[u]))+'道练习</div><h2>'+title+'</h2><p>'+desc+'</p><p id="progress-'+str(u)+'" class="home-progress">尚未读取学习记录</p><a class="button" href="'+FILES[u]+'.html">打开讲义与练习 →</a></section>'
-    home+='</div><section class="panel"><h2>怎么使用这份笔记</h2><p>各部分按主题组织，可从章节目录自由选择，也可搜索关键词直达知识点。例题就在知识点旁，练习入口紧跟对应小节。顶部导航可随时切换八部分内容，“把知识连起来”会带你到相关章节。</p><p>答题记录保存在当前浏览器，首次结果和最近结果分别保留。更换设备前可以导出JSON备份；目前不提供记录导入或跨设备同步。本地文件版的记录不会自动迁移到此网站。</p><p>这些笔记由个人整理并借助AI辅助编写，配套题为教学自编，不是官方试题。欢迎通过GitHub指出错误、补充例题。</p></section></main>'
-    progress=[dict(unit=u,question_ids=[q['id'] for q in banks[u]],**STORAGE[u]) for u,_,_ in COURSES]
+        home+='<section class="home-card course-card"><div class="meta">'+LABELS[u]+' · '+str(len(banks[u]))+'道练习</div><h2>'+title+'</h2><p>'+desc+'</p><p id="progress-'+str(u)+'" class="home-progress">尚未读取学习记录</p><a class="button" href="'+FILES[u]+'.html">打开讲义与练习 →</a></section>'
+    home+='</div><section class="panel"><h2>怎么使用这份笔记</h2><p>各部分按主题组织，可从章节目录自由选择，也可搜索关键词直达知识点。例题就在知识点旁，练习入口紧跟对应小节。顶部导航可随时切换各部分内容，“把知识连起来”会带你到相关章节。</p><p>答题记录保存在当前浏览器，首次结果和最近结果分别保留。更换设备前可以导出JSON备份；目前不提供记录导入或跨设备同步。本地文件版的记录不会自动迁移到此网站。</p><p>这些笔记由个人整理并借助AI辅助编写，配套题为教学自编，不是官方试题。欢迎通过GitHub指出错误、补充例题。</p></section></main>'
+    progress=[dict(unit=u,url=FILES[u]+'.html',question_ids=[q['id'] for q in banks[u]],**STORAGE[u]) for u,_,_ in COURSES]
     (OUT/'index.html').write_text(shell('学习总览',home,0,'<script src="assets/records.js" defer></script><script id="progress-data" type="application/json">'+escaped_json(progress)+'</script><script id="search-data" type="application/json">'+escaped_json(search)+'</script><script src="assets/site.js" defer></script>'))
     about=md.render((CONTENT/'about.md').read_text())
     (OUT/'about.html').write_text(shell('关于与许可','<main id="main-content" class="passage">'+about+'</main>'))
