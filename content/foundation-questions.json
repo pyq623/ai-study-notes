@@ -1408,8 +1408,8 @@
   },
   {
     "id": "5-11",
-    "unit": 5,
-    "lesson": 6,
+    "unit": 6,
+    "lesson": 1,
     "stem": "关于时间复杂度，哪些正确？",
     "options": [
       "逐个扫描n个元素通常O(n)",
@@ -1424,12 +1424,13 @@
       "C正确：两层各n次，约n×n。",
       "D正确：插入还可能移动O(n)个元素。"
     ],
-    "type": "多选"
+    "type": "多选",
+    "review_anchor": "lesson-1"
   },
   {
     "id": "5-12",
-    "unit": 5,
-    "lesson": 7,
+    "unit": 6,
+    "lesson": 2,
     "stem": "先把1、2、3全部依次入栈，再全部出栈；另把1、2、3全部依次入队，再全部出队。两个输出顺序分别是什么？",
     "options": [
       "栈123，队列321",
@@ -1444,12 +1445,13 @@
       "C正确：栈后进先出321，队列先进先出123。",
       "D错误：普通队列应先取最早进入的1。"
     ],
-    "type": "单选"
+    "type": "单选",
+    "review_anchor": "lesson-2-step-3"
   },
   {
     "id": "5-13",
-    "unit": 5,
-    "lesson": 7,
+    "unit": 6,
+    "lesson": 2,
     "stem": "关于数组、链表、哈希表，哪些正确？",
     "options": [
       "数组按下标访问通常O(1)",
@@ -1464,12 +1466,13 @@
       "C正确：这是省去定位成本后的特定操作；须看节点与链表类型。",
       "D错误：冲突等可导致退化，应区分平均与最坏。"
     ],
-    "type": "多选"
+    "type": "多选",
+    "review_anchor": "lesson-2-step-1"
   },
   {
     "id": "5-14",
-    "unit": 5,
-    "lesson": 8,
+    "unit": 6,
+    "lesson": 3,
     "stem": "关于BST与最小堆，哪些正确？",
     "options": [
       "普通BST按升序插入可能退化成链",
@@ -1484,12 +1487,13 @@
       "C错误：堆只维护局部父子关系，不保证全局排序。",
       "D错误：二叉树是每个节点最多两个孩子。"
     ],
-    "type": "多选"
+    "type": "多选",
+    "review_anchor": "lesson-3-step-4"
   },
   {
     "id": "5-15",
-    "unit": 5,
-    "lesson": 8,
+    "unit": 6,
+    "lesson": 3,
     "stem": "关于图遍历与最短路，哪些正确？",
     "options": [
       "BFS可求无权图的最少边数路径",
@@ -1504,12 +1508,13 @@
       "C正确：先进先出支持逐层探索。",
       "D错误：DFS优先深入，首次找到的路径未必最短。"
     ],
-    "type": "多选"
+    "type": "多选",
+    "review_anchor": "lesson-3-step-6"
   },
   {
     "id": "5-16",
-    "unit": 5,
-    "lesson": 9,
+    "unit": 6,
+    "lesson": 4,
     "stem": "关于常见排序实现，哪些正确？",
     "options": [
       "数组归并排序可稳定，最坏O(n log n)",
@@ -1524,12 +1529,13 @@
       "C错误：普通堆排序通常不稳定。",
       "D错误：稳定指相同关键字元素的原有相对顺序保留。"
     ],
-    "type": "多选"
+    "type": "多选",
+    "review_anchor": "lesson-4"
   },
   {
     "id": "5-17",
-    "unit": 5,
-    "lesson": 10,
+    "unit": 7,
+    "lesson": 1,
     "stem": "关于线程、锁与死锁，哪些正确？",
     "options": [
       "同进程线程共享许多资源，但各有自己的栈",
@@ -1544,12 +1550,13 @@
       "C正确：例如所有线程统一先A后B，可破坏A／B的循环等待。",
       "D错误：持锁等待可能挡住能满足条件的对方。"
     ],
-    "type": "多选"
+    "type": "多选",
+    "review_anchor": "lesson-1"
   },
   {
     "id": "5-18",
-    "unit": 5,
-    "lesson": 11,
+    "unit": 7,
+    "lesson": 3,
     "stem": "关于TCP与HTTP，哪些正确？",
     "options": [
       "TCP提供字节流，应用需按协议分帧",
@@ -1564,12 +1571,13 @@
       "C正确：多个流可共享连接。",
       "D错误：TCP层仍可能出现跨流的丢包影响。"
     ],
-    "type": "多选"
+    "type": "多选",
+    "review_anchor": "lesson-3-step-2"
   },
   {
     "id": "5-19",
-    "unit": 5,
-    "lesson": 11,
+    "unit": 7,
+    "lesson": 5,
     "stem": "哪些缓存问题与描述对应正确？",
     "options": [
       "反复请求根本不存在的数据：穿透",
@@ -1584,12 +1592,13 @@
       "C正确：大范围同时失效产生后端压力。",
       "D错误：抖动主要缓解集中到期，不处理所有不存在数据的请求。"
     ],
-    "type": "多选"
+    "type": "多选",
+    "review_anchor": "lesson-5"
   },
   {
     "id": "5-20",
-    "unit": 5,
-    "lesson": 11,
+    "unit": 7,
+    "lesson": 6,
     "stem": "关于数据库与消息重试，哪些正确？",
     "options": [
       "索引可能加速查询，但增加空间与写入维护成本",
@@ -1604,12 +1613,13 @@
       "C正确：至少一次强调不止一次的可能性。",
       "D正确：消息系统未收到确认，可能再次交付。"
     ],
-    "type": "多选"
+    "type": "多选",
+    "review_anchor": "lesson-6"
   },
   {
     "id": "5-21",
-    "unit": 5,
-    "lesson": 7,
+    "unit": 6,
+    "lesson": 2,
     "stem": "【数组移动】长度12的顺序表，下标从0开始，保持元素顺序且容量足够。分别从原表在下标4插入、删除下标4，需移动多少个旧元素？两次操作相互独立。",
     "options": [
       "7、8",
@@ -1625,12 +1635,12 @@
       "D错误：移动的是指定位置后面的元素，不是前面4个。"
     ],
     "type": "单选",
-    "review_anchor": "lesson-7-step-1"
+    "review_anchor": "lesson-2-step-1"
   },
   {
     "id": "5-22",
-    "unit": 5,
-    "lesson": 7,
+    "unit": 6,
+    "lesson": 2,
     "stem": "【数组地址】A是5行6列的连续数组，按行优先存储，下标从0开始，每元素8 byte，A[0][0]地址2000。A[3][2]的地址是多少？",
     "options": [
       "2080",
@@ -1646,12 +1656,12 @@
       "D错误：偏移为20个元素，不是22个。"
     ],
     "type": "单选",
-    "review_anchor": "lesson-7-step-1"
+    "review_anchor": "lesson-2-step-1"
   },
   {
     "id": "5-23",
-    "unit": 5,
-    "lesson": 7,
+    "unit": 6,
+    "lesson": 2,
     "stem": "【链表指针】单链表中p.next原来指向q，s是独立的新节点，要把s插入p与q之间。哪些判断正确？",
     "options": [
       "依次执行s.next=p.next、p.next=s可完成插入",
@@ -1667,12 +1677,12 @@
       "D错误：若还要从表头遍历寻找位置，最坏需O(n)。"
     ],
     "type": "多选",
-    "review_anchor": "lesson-7-step-2"
+    "review_anchor": "lesson-2-step-2"
   },
   {
     "id": "5-24",
-    "unit": 5,
-    "lesson": 7,
+    "unit": 6,
+    "lesson": 2,
     "stem": "【出栈合法性】1、2、3、4依次入一个栈，允许进出交错，每个元素恰好入栈、出栈一次。以下哪个出栈序列不可能？",
     "options": [
       "2、1、4、3",
@@ -1688,12 +1698,12 @@
       "D正确（本项不可能）：先弹3要求先压1、2、3；弹3后栈顶为2，挡着1，不能先弹1。"
     ],
     "type": "单选",
-    "review_anchor": "lesson-7-step-3"
+    "review_anchor": "lesson-2-step-3"
   },
   {
     "id": "5-25",
-    "unit": 5,
-    "lesson": 7,
+    "unit": 6,
+    "lesson": 2,
     "stem": "【最小栈容量】输入顺序1、2、3、4、5，要求输出3、2、1、5、4，允许进出交错。栈至少能容纳几个元素？",
     "options": [
       "2",
@@ -1709,12 +1719,12 @@
       "D错误：不要求5个元素全部同时在栈内。"
     ],
     "type": "单选",
-    "review_anchor": "lesson-7-step-3"
+    "review_anchor": "lesson-2-step-3"
   },
   {
     "id": "5-26",
-    "unit": 5,
-    "lesson": 7,
+    "unit": 6,
+    "lesson": 2,
     "stem": "【出栈序列计数】4个互异元素按固定顺序入一个容量无限的栈，允许任意合法进出交错，每个元素恰进出一次。不同出栈序列共有多少种？",
     "options": [
       "5",
@@ -1730,12 +1740,12 @@
       "D错误：4!=24是所有排列，部分排列不能由单栈产生。"
     ],
     "type": "单选",
-    "review_anchor": "lesson-7-step-3"
+    "review_anchor": "lesson-2-step-3"
   },
   {
     "id": "5-27",
-    "unit": 5,
-    "lesson": 7,
+    "unit": 6,
+    "lesson": 2,
     "stem": "【后缀表达式】按通常算术运算，后缀表达式“12 5 2 - / 3 +”的值是多少？",
     "options": [
       "7",
@@ -1751,12 +1761,12 @@
       "D错误：中间的12除以3是4，最后加3得到7。"
     ],
     "type": "单选",
-    "review_anchor": "lesson-7-step-4"
+    "review_anchor": "lesson-2-step-4"
   },
   {
     "id": "5-28",
-    "unit": 5,
-    "lesson": 7,
+    "unit": 6,
+    "lesson": 2,
     "stem": "【循环队列变化】数组长度M=10，留一空槽，front指队头，rear指下一入队位置。初始front=8、rear=3。先成功入队3次，再出队2次，最终(front,rear,元素数)为？",
     "options": [
       "(0,6,5)",
@@ -1772,12 +1782,12 @@
       "D正确：rear=(3+3)%10=6；front=(8+2)%10=0；元素数(6−0+10)%10=6。过程中容量最多8，不超过上限9。"
     ],
     "type": "单选",
-    "review_anchor": "lesson-7-step-5"
+    "review_anchor": "lesson-2-step-5"
   },
   {
     "id": "5-29",
-    "unit": 5,
-    "lesson": 7,
+    "unit": 6,
+    "lesson": 2,
     "stem": "【循环队列判满】数组长度6，留一空槽；front指队头，rear指下一入队位置。front=2、rear=1时，元素数和能否再入队为？",
     "options": [
       "1个，可以",
@@ -1793,12 +1803,12 @@
       "D错误：留一空槽的约定下最多存5个，不是6个。"
     ],
     "type": "单选",
-    "review_anchor": "lesson-7-step-5"
+    "review_anchor": "lesson-2-step-5"
   },
   {
     "id": "5-30",
-    "unit": 5,
-    "lesson": 7,
+    "unit": 6,
+    "lesson": 2,
     "stem": "【线性探测与成功ASL】空哈希表长7，下标0～6，h(k)=k%7，依次插入6、13、1，冲突后逐格向后并循环。每访问一个槽计一次。三个现存键等概率被查，成功ASL为？",
     "options": [
       "1",
@@ -1814,12 +1824,12 @@
       "D错误：只平均实际查找6、13、1的次数，不用表长7作分子。"
     ],
     "type": "单选",
-    "review_anchor": "lesson-7-step-6"
+    "review_anchor": "lesson-2-step-6"
   },
   {
     "id": "5-31",
-    "unit": 5,
-    "lesson": 7,
+    "unit": 6,
+    "lesson": 2,
     "stem": "【失败ASL】表长7，h(k)=k%7，线性探测；槽6、0、1分别存6、13、1，其余从未占用。不存在的键，其初始地址在0～6等概率。访问最后空槽也算一次，失败ASL为？",
     "options": [
       "4/3",
@@ -1835,12 +1845,12 @@
       "D正确：起点0～6的次数依次为3、2、1、1、1、1、4；起点6走6→0→1→2。总计13次，除以7得13/7。"
     ],
     "type": "单选",
-    "review_anchor": "lesson-7-step-6"
+    "review_anchor": "lesson-2-step-6"
   },
   {
     "id": "5-32",
-    "unit": 5,
-    "lesson": 7,
+    "unit": 6,
+    "lesson": 2,
     "stem": "【哈希删除】线性探测表长7，h(k)=k%7，先插6再插13，分别位于槽6和0。现在删除6，哪些做法或判断正确？",
     "options": [
       "若把槽6直接标为从未占用，查13可能在槽6提前停止而漏查",
@@ -1856,12 +1866,12 @@
       "D错误：冲突会增加探测次数，极端情况下最坏可达O(n)。"
     ],
     "type": "多选",
-    "review_anchor": "lesson-7-step-6"
+    "review_anchor": "lesson-2-step-6"
   },
   {
     "id": "5-33",
-    "unit": 5,
-    "lesson": 8,
+    "unit": 6,
+    "lesson": 3,
     "stem": "【二叉树计数】非空二叉树有12个叶子、5个单孩子节点，总节点数是多少？",
     "options": [
       "17",
@@ -1877,12 +1887,12 @@
       "D错误：叶子比双孩子节点多1，不是二者一样多。"
     ],
     "type": "单选",
-    "review_anchor": "lesson-8-step-1"
+    "review_anchor": "lesson-3-step-1"
   },
   {
     "id": "5-34",
-    "unit": 5,
-    "lesson": 8,
+    "unit": 6,
+    "lesson": 3,
     "stem": "【完全二叉树】20个节点的完全二叉树，根在第1层，层序从1编号。层数、叶子数、单孩子节点数依次是多少？",
     "options": [
       "5、10、1",
@@ -1898,12 +1908,12 @@
       "D错误：完全二叉树至多一个单孩子节点，本题就是节点10。"
     ],
     "type": "单选",
-    "review_anchor": "lesson-8-step-1"
+    "review_anchor": "lesson-3-step-1"
   },
   {
     "id": "5-35",
-    "unit": 5,
-    "lesson": 8,
+    "unit": 6,
+    "lesson": 3,
     "stem": "【遍历还原】节点互异，先序为ABDEC，中序为DBEAC，后序是什么？",
     "options": [
       "DBECA",
@@ -1919,12 +1929,12 @@
       "D正确：根A；左子树中序DBE、根B且孩子D/E，右子树只有C；后序DEB+C+A=DEBCA。"
     ],
     "type": "单选",
-    "review_anchor": "lesson-8-step-2"
+    "review_anchor": "lesson-3-step-2"
   },
   {
     "id": "5-36",
-    "unit": 5,
-    "lesson": 8,
+    "unit": 6,
+    "lesson": 3,
     "stem": "【BST查找】向空的普通BST依次插入6、3、8、2、5、7、9，键互异。查找5时，访问一个节点计一次，需访问几次？",
     "options": [
       "2",
@@ -1940,12 +1950,12 @@
       "D错误：查找不需要遍历所有小于等于5的键。"
     ],
     "type": "单选",
-    "review_anchor": "lesson-8-step-3"
+    "review_anchor": "lesson-3-step-3"
   },
   {
     "id": "5-37",
-    "unit": 5,
-    "lesson": 8,
+    "unit": 6,
+    "lesson": 3,
     "stem": "【堆插入】最小堆按层序存为[3,6,5,9,8]。把2追加末尾并按标准上浮调整，最终数组为？",
     "options": [
       "[2,3,5,6,8,9]",
@@ -1961,12 +1971,12 @@
       "D错误：上浮只沿新节点到根的路径交换，不会把原来下标1的6移到下标2。"
     ],
     "type": "单选",
-    "review_anchor": "lesson-8-step-4"
+    "review_anchor": "lesson-3-step-4"
   },
   {
     "id": "5-38",
-    "unit": 5,
-    "lesson": 8,
+    "unit": 6,
+    "lesson": 3,
     "stem": "【Top-k】按顺序读入4、10、2、8、6，用大小3的堆保留最大的3个数。最终应使用哪种堆，堆顶为多少？",
     "options": [
       "最小堆，6",
@@ -1982,12 +1992,12 @@
       "D错误：最终三数中最大值为10，最大堆顶也不会是6。"
     ],
     "type": "单选",
-    "review_anchor": "lesson-8-step-4"
+    "review_anchor": "lesson-3-step-4"
   },
   {
     "id": "5-39",
-    "unit": 5,
-    "lesson": 8,
+    "unit": 6,
+    "lesson": 3,
     "stem": "【哈夫曼WPL】叶子权值为1、2、4、8，用二叉哈夫曼算法构造树，带权路径长度是多少？",
     "options": [
       "15",
@@ -2003,12 +2013,12 @@
       "D正确：1+2=3；3+4=7；7+8=15。WPL=3+7+15=25，也等于1×3+2×3+4×2+8×1。"
     ],
     "type": "单选",
-    "review_anchor": "lesson-8-step-5"
+    "review_anchor": "lesson-3-step-5"
   },
   {
     "id": "5-40",
-    "unit": 5,
-    "lesson": 8,
+    "unit": 6,
+    "lesson": 3,
     "stem": "【图的计数】简单无向图有8个顶点，度数和20。实际边数与最多可能边数分别为？",
     "options": [
       "20、56",
@@ -2024,12 +2034,12 @@
       "D错误：28正确，但实际边数需将度数和除以2。"
     ],
     "type": "单选",
-    "review_anchor": "lesson-8-step-6"
+    "review_anchor": "lesson-3-step-6"
   },
   {
     "id": "5-41",
-    "unit": 5,
-    "lesson": 8,
+    "unit": 6,
+    "lesson": 3,
     "stem": "【BFS手算】无向图仅有边AB、AC、BD、CD、DE、EF。从A开始，邻居按字母升序考察，BFS在入队时标记访问。访问顺序与A到F的最少边数为？",
     "options": [
       "ABDCEF；4",
@@ -2045,12 +2055,12 @@
       "D错误：路径含5个顶点、4条边，不能把顶点数当边数。"
     ],
     "type": "单选",
-    "review_anchor": "lesson-8-step-6"
+    "review_anchor": "lesson-3-step-6"
   },
   {
     "id": "5-42",
-    "unit": 5,
-    "lesson": 8,
+    "unit": 6,
+    "lesson": 3,
     "stem": "【Dijkstra】有向图仅有S→A(5)、S→B(2)、B→A(1)、A→T(2)、B→T(6)。从S到T的最短距离和路径为？",
     "options": [
       "5，S→B→A→T",
@@ -2066,12 +2076,12 @@
       "D错误：3只到A，还没有走A→T这条权为2的边。"
     ],
     "type": "单选",
-    "review_anchor": "lesson-8-step-7"
+    "review_anchor": "lesson-3-step-7"
   },
   {
     "id": "5-43",
-    "unit": 5,
-    "lesson": 8,
+    "unit": 6,
+    "lesson": 3,
     "stem": "【最小生成树】无向连通图有边AB(2)、AC(3)、BC(4)、BD(6)、CD(7)。Kruskal得到的MST总权重为？",
     "options": [
       "9",
@@ -2087,12 +2097,12 @@
       "D正确：取AB(2)、AC(3)，跳过成环的BC(4)，再取BD(6)，总权重11。"
     ],
     "type": "单选",
-    "review_anchor": "lesson-8-step-8"
+    "review_anchor": "lesson-3-step-8"
   },
   {
     "id": "5-44",
-    "unit": 5,
-    "lesson": 8,
+    "unit": 6,
+    "lesson": 3,
     "stem": "【拓扑排序】有向图仅含A→C、B→C、B→D、C→E、D→E。下列哪些是合法拓扑序？",
     "options": [
       "ABCDE",
@@ -2108,12 +2118,12 @@
       "D错误：边D→E要求D先于E，此序列把E放早了。"
     ],
     "type": "多选",
-    "review_anchor": "lesson-8-step-9"
+    "review_anchor": "lesson-3-step-9"
   },
   {
     "id": "5-45",
-    "unit": 5,
-    "lesson": 11,
+    "unit": 7,
+    "lesson": 2,
     "stem": "【TCP确认与窗口】接收方按序收到seq=2000、载荷300字节的数据段，之前无缺口。本方向rwnd=6000字节、cwnd=4000字节，发送方已有1500字节在途。确认号与最多还能新增发送的字节数分别为？",
     "options": [
       "2300、2500",
@@ -2129,12 +2139,12 @@
       "D错误：窗口取较小值，不能把两个窗口相加。"
     ],
     "type": "单选",
-    "review_anchor": "lesson-11-step-1"
+    "review_anchor": "lesson-2-step-1"
   },
   {
     "id": "5-46",
-    "unit": 5,
-    "lesson": 11,
+    "unit": 7,
+    "lesson": 2,
     "stem": "【握手与关闭】关于常规TCP连接，下列哪些判断正确？",
     "options": [
       "不携带数据的SYN、FIN都各占用一个序号",
@@ -2150,12 +2160,12 @@
       "D正确：2MSL=2×40=80秒；具体MSL按题设，不当成所有系统统一的常数。"
     ],
     "type": "多选",
-    "review_anchor": "lesson-11-step-2"
+    "review_anchor": "lesson-2-step-2"
   },
   {
     "id": "5-47",
-    "unit": 5,
-    "lesson": 11,
+    "unit": 7,
+    "lesson": 3,
     "stem": "【HTTP语义与缓存】按HTTP标准语义，下列哪些说法正确？",
     "options": [
       "no-cache表示响应绝对不能被保存",
@@ -2171,12 +2181,12 @@
       "D错误：HTTP方法的安全语义不等于传输加密，后者要看TLS等安全传输机制。"
     ],
     "type": "多选",
-    "review_anchor": "lesson-11-step-3"
+    "review_anchor": "lesson-3-step-1"
   },
   {
     "id": "5-48",
-    "unit": 5,
-    "lesson": 11,
+    "unit": 7,
+    "lesson": 3,
     "stem": "【HTTP版本】关于HTTP/1.1、HTTP/2与HTTP/3，下列哪些判断正确？",
     "options": [
       "HTTP/1.1长连接就等于HTTP/2的帧级多路复用",
@@ -2192,12 +2202,12 @@
       "D错误：某流丢失的数据仍可阻塞该流，连接级拥塞控制等也可能影响其他流。"
     ],
     "type": "多选",
-    "review_anchor": "lesson-11-step-4"
+    "review_anchor": "lesson-3-step-2"
   },
   {
     "id": "5-49",
-    "unit": 5,
-    "lesson": 11,
+    "unit": 6,
+    "lesson": 5,
     "stem": "【B树阶数】约定m阶B-tree每个节点最多m个孩子。一棵7阶B-tree的非根内部节点，最少孩子数、最少键数、最多键数依次为？",
     "options": [
       "3、2、7",
@@ -2213,12 +2223,12 @@
       "D正确：最少ceil(7/2)=4个孩子、3个键；最多7个孩子、6个键。根另有最低数量例外。"
     ],
     "type": "单选",
-    "review_anchor": "lesson-11-step-5"
+    "review_anchor": "lesson-5-step-1"
   },
   {
     "id": "5-50",
-    "unit": 5,
-    "lesson": 11,
+    "unit": 6,
+    "lesson": 5,
     "stem": "【B+树容量与扫描】某B+树共3层（根→内部节点→叶），每个内部节点最多10个孩子，每叶最多20条记录。下列哪些判断正确？",
     "options": [
       "满载时最多100个叶子、2000条记录",
@@ -2234,6 +2244,6 @@
       "D正确：根无需再读，沿路径还需读取一个内部页和一个叶页；这里按题设的页访问模型计算。"
     ],
     "type": "多选",
-    "review_anchor": "lesson-11-step-6"
+    "review_anchor": "lesson-5-step-2"
   }
 ]
