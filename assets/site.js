@@ -4,12 +4,13 @@ if (window.matchMedia('(max-width: 800px)').matches) {
   const toc = document.querySelector('.course-toc > details');
   if (toc) toc.open = false;
 }
-for (let u = 1; u <= 6; u++) {
-  const el = document.getElementById('progress-' + u);
-  if (!el) continue;
+const progressData = document.getElementById('progress-data');
+if (progressData) for (const config of JSON.parse(progressData.textContent)) {
+  const el = document.getElementById('progress-' + config.unit);
   try {
-    const saved = JSON.parse(localStorage.getItem('ai-study-notes-unit-' + u + '-v2') || '{}');
-    const records = Object.values(saved || {}).filter(x => x && x.submitted === true);
+    const saved = StudyRecords.read(localStorage, config, config.question_ids);
+    if (!saved.ok) throw new Error('Storage unavailable');
+    const records = Object.values(saved.records).filter(x => x.submitted === true);
     el.textContent = '本轮已提交 ' + records.length + ' · 答对 ' + records.filter(x => x.last === true).length;
   } catch (_) { el.textContent = '当前无法读取记录，仍可阅读和练习。'; }
 }

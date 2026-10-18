@@ -10,7 +10,9 @@
 | 单元2 · 线性代数基础 | 16 |
 | 单元3 · 概率、统计与信息论 | 15 |
 | 单元4 · 神经网络与训练 | 15 |
-| 单元5 · AI Infra与计算机基础 | 50 |
+| 单元5 · AI Infra基础 | 10 |
+| 单元6 · 数据结构与算法 | 32 |
+| 单元7 · 计算机系统基础 | 8 |
 | 工程专题 · Agent、上下文与工程实践 | 48 |
 
 全站可相互跳转，首页支持章节标题搜索，相关知识点提供跨章链接。题目支持判分、逐项解析、错题筛选与JSON导出。答题记录只保存在读者当前浏览器，不上传、不跨设备同步；本地文件版记录不会自动迁移，目前没有导入功能。
@@ -35,7 +37,7 @@ python3 -m http.server 8000 --directory docs
 
 ## 修改内容
 
-- `content/unit-1.md` ～ `unit-5.md`：五个基础单元。
+- `content/unit-1.md` ～ `unit-7.md`：七个基础单元。
 - `content/engineering.md`：工程专题。
 - `content/*-questions.json`：题目、正确选项、逐项解析与回看锚点。新增题目请追加ID，不重排已有题号，以保留读者记录。
 - `assets/tree-*.svg`：教学图示。
@@ -45,6 +47,12 @@ python3 -m http.server 8000 --directory docs
 提交前运行 `npm run build && npm test`。合并到main后自动发布；初次部署需在仓库 Settings → Pages 中选择 **GitHub Actions**。
 
 `VERSION`和更新日志使用四段站点发布号；`package.json`使用npm要求的三段SemVer版本号。
+
+## 旧版兼容
+
+单元5原有内容拆为单元5～7，保留全部题号；旧链接会定位到新小节。网页版本已有答题记录按题号继续读取，工程专题的记录保持独立；该兼容不涉及本地文件版或跨设备同步。
+
+`content/legacy-unit-5-links.json`保存旧锚点映射。`scripts/build.py`中的`STORAGE`指定固定存储键，不要随单元编号调整：工程专题保留旧unit-6-v2键，新单元6使用unit-6-v3；单元6、7从旧unit-5-v2读取对应题目作为回退，新记录优先。
 
 ## 许可
 

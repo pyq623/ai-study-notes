@@ -3,12 +3,13 @@ from html.parser import HTMLParser
 from pathlib import Path
 from urllib.parse import unquote,urlsplit,urljoin
 import json
+import hashlib
 import re
 import unittest
 
 ROOT=Path(__file__).resolve().parents[1]
 DOCS=ROOT/'docs'
-CHAPTERS=[f'unit-{i}.html' for i in range(1,6)]+['engineering.html']
+CHAPTERS=[f'unit-{i}.html' for i in range(1,8)]+['engineering.html']
 
 class Page(HTMLParser):
     def __init__(self,path):
@@ -68,7 +69,7 @@ class SiteTests(unittest.TestCase):
         for name in CHAPTERS:
             page=self.pages[name]
             data=json.loads(re.search(r'<script id="quiz-data" type="application/json">(.*?)</script>',page.text,re.S).group(1))
-            expected=json.loads((ROOT/'content'/('engineering-questions.json' if data['unit']==6 else 'foundation-questions.json')).read_text())
+            expected=json.loads((ROOT/'content'/('engineering-questions.json' if data['unit']==8 else 'foundation-questions.json')).read_text())
             expected=[q for q in expected if q['unit']==data['unit']]
             self.assertEqual(len(data['questions']),len(expected));total+=len(expected)
             for q,original in zip(data['questions'],expected):
@@ -101,10 +102,62 @@ class SiteTests(unittest.TestCase):
             self.assertTrue((DOCS/'assets/katex'/path.strip('\"\'')).is_file(),path)
         self.assertTrue((DOCS/'assets/katex/LICENSE').exists())
     def test_practice_links_follow_knowledge(self):
-        page=self.pages['unit-5.html'].text
-        for step,qid in [(1,'5-45'),(2,'5-46'),(3,'5-47'),(4,'5-48'),(5,'5-49'),(6,'5-50')]:
-            section=page.split(f'<h3 id="lesson-11-step-{step}">')[1].split('<h3 id=')[0]
+        for file,anchor,qid in [
+            ('unit-6.html','lesson-2-step-1','5-21'),
+            ('unit-6.html','lesson-3-step-5','5-39'),
+            ('unit-6.html','lesson-5-step-1','5-49'),
+            ('unit-6.html','lesson-5-step-2','5-50'),
+            ('unit-7.html','lesson-2-step-1','5-45'),
+            ('unit-7.html','lesson-2-step-2','5-46'),
+            ('unit-7.html','lesson-3-step-1','5-47'),
+            ('unit-7.html','lesson-3-step-2','5-48')]:
+            section=self.pages[file].text.split(f'<h3 id="{anchor}">')[1].split('<h3 id=')[0].split('<h2 id=')[0]
             self.assertIn(f'href="#q-{qid}"',section)
+    def test_split_preserves_every_question(self):
+        expected=json.loads((ROOT/'tests/question-fingerprints.json').read_text())
+        actual={}
+        for file in ['foundation-questions.json','engineering-questions.json']:
+            for q in json.loads((ROOT/'content'/file).read_text()):
+                self.assertNotIn(q['id'],actual)
+                actual[q['id']]=hashlib.sha256(json.dumps({k:q[k] for k in ('stem','type','options','answer','explanations')},ensure_ascii=False,sort_keys=True).encode()).hexdigest()
+        self.assertEqual(actual,expected)
+    def test_split_chapter_boundaries(self):
+        infra=(ROOT/'content/unit-5.md').read_text()
+        algorithms=(ROOT/'content/unit-6.md').read_text()
+        systems=(ROOT/'content/unit-7.md').read_text()
+        self.assertNotIn('## 6.',infra)
+        self.assertNotIn('TCP：字节流',infra)
+        for figure in ['tree-bst-search.svg','tree-btree-search-split.svg','tree-bplus-range.svg']:
+            self.assertIn(figure,algorithms)
+        self.assertNotIn('落到MySQL InnoDB',algorithms)
+        self.assertIn('落到MySQL InnoDB',systems)
+        self.assertIn('unit-6.html#lesson-5-step-2',systems)
+    def test_old_bookmarks_resolve(self):
+        mapping=json.loads((ROOT/'content/legacy-unit-5-links.json').read_text())
+        # All moved old section anchors, including every previously numbered h3.
+        expected={f'lesson-{n}' for n in range(6,13)}
+        for lesson,steps in [(7,6),(8,9),(9,5),(11,8)]:
+            expected.update(f'lesson-{lesson}-step-{n}' for n in range(1,steps+1))
+        expected.update(f'q-5-{n:02}' for n in range(11,51))
+        self.assertEqual(set(mapping),expected)
+        for anchor,target in mapping.items():
+            self.assertIn(anchor,self.pages['unit-5.html'].ids)
+            file,new_anchor=target.split('#')
+            self.assertIn(new_anchor,self.pages[file].ids)
+        self.assertEqual(mapping['lesson-11-step-5'],'unit-6.html#lesson-5-step-1')
+        self.assertEqual(mapping['lesson-11-step-4'],'unit-7.html#lesson-3-step-2')
+    def test_progress_uses_disjoint_questions_and_storage(self):
+        data=json.loads(re.search(r'<script id="progress-data" type="application/json">(.*?)</script>',self.pages['index.html'].text,re.S).group(1))
+        self.assertEqual([len(x['question_ids']) for x in data],[14,16,15,15,10,32,8,48])
+        self.assertEqual(len({x['storage_key'] for x in data}),8)
+        self.assertEqual(data[-1]['storage_key'],'ai-study-notes-unit-6-v2')
+        all_ids=[qid for x in data for qid in x['question_ids']]
+        self.assertEqual(len(set(all_ids)),158)
+        for x in data:
+            file=f"unit-{x['unit']}.html" if x['unit']<8 else 'engineering.html'
+            quiz=json.loads(re.search(r'<script id="quiz-data" type="application/json">(.*?)</script>',self.pages[file].text,re.S).group(1))
+            self.assertEqual(quiz['storage_key'],x['storage_key'])
+            self.assertEqual(quiz.get('legacy_storage_key'),x.get('legacy_storage_key'))
     def test_no_analytics_or_external_scripts(self):
         for name,page in self.pages.items():
             self.assertTrue(all(not urlsplit(r).scheme for r in page.resources),name)

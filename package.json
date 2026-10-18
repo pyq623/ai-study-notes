@@ -1,11 +1,11 @@
 {
   "name": "ai-study-notes",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
-  "description": "AI\u57fa\u7840\u4e0e\u5de5\u7a0b\u7b14\u8bb0",
+  "description": "AI基础与工程笔记",
   "scripts": {
     "build": "python3 scripts/build.py",
-    "test": "python3 -m unittest discover -s tests"
+    "test": "python3 -m unittest discover -s tests && node --test tests/compatibility.cjs"
   },
   "dependencies": {
     "katex": "0.16.22"

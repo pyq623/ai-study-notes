@@ -1,14 +1,16 @@
 'use strict';
 document.documentElement.classList.add('js');
 const DATA=JSON.parse(document.getElementById('quiz-data').textContent);
-const UNIT=DATA.unit,QS=DATA.questions,KEY='ai-study-notes-unit-'+UNIT+'-v2'+(new URLSearchParams(location.search).get('preview')==='1'?'-preview':'');
+const UNIT=DATA.unit,QS=DATA.questions;
+const suffix=new URLSearchParams(location.search).get('preview')==='1'?'-preview':'';
+const KEY=DATA.storage_key+suffix;
 let state={},storageOK=true;
-try{const saved=JSON.parse(localStorage.getItem(KEY)||'{}');if(saved&&typeof saved==='object'&&!Array.isArray(saved))state=saved;}catch(e){storageOK=false;}
+try{const saved=StudyRecords.read(localStorage,DATA,QS.map(q=>q.id),suffix);state=saved.records;storageOK=saved.ok;}catch(e){storageOK=false;}
 const cards=[...document.querySelectorAll('.question')],scope=document.getElementById('scope');
 const queryId=id=>document.getElementById('q-'+id), get=id=>state[id]||{};
 const valid=(q,arr)=>Array.isArray(arr)?[...new Set(arr)].filter(x=>'ABCD'.includes(x)&&x.length===1).sort():[];
 const escape=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-function save(){try{localStorage.setItem(KEY,JSON.stringify(state));storageOK=true;}catch(e){storageOK=false;}stats();}
+function save(){try{storageOK=StudyRecords.write(localStorage,KEY,state);}catch(e){storageOK=false;}stats();}
 function stats(){
  const submitted=QS.filter(q=>get(q.id).submitted),correct=submitted.filter(q=>get(q.id).last===true),sure=correct.filter(q=>get(q.id).confidence==='sure');
  const first=QS.filter(q=>typeof get(q.id).first==='boolean'),firstOK=first.filter(q=>get(q.id).first);
@@ -36,6 +38,6 @@ document.getElementById('questions').addEventListener('click',e=>{
 });
 scope.addEventListener('change',applyFilter);
 document.getElementById('export').addEventListener('click',()=>{
- const blob=new Blob([JSON.stringify({unit:UNIT,exportedAt:new Date().toISOString(),records:state},null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='AI笔记-'+(UNIT===6?'工程专题':'单元'+UNIT)+'-答题记录.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+ const blob=new Blob([JSON.stringify({unit:UNIT,exportedAt:new Date().toISOString(),records:state},null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='AI笔记-'+(UNIT===8?'工程专题':'单元'+UNIT)+'-答题记录.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
 });
 stats();applyFilter();
