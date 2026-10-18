@@ -1,0 +1,27 @@
+# 关于这份笔记
+
+这是一份由 [pyq623](https://github.com/pyq623) 整理、借助AI辅助编写的开放学习笔记，起初用于笔试复习，现按长期阅读和练习的方式发布。
+
+内容包括机器学习、线性代数、概率统计、神经网络、AI Infra与计算机基础，以及Agent工程专题。五个基础单元共有110道练习，工程专题48道，共158道；它们都是教学自编题，不是官方题库，也不构成任何场次的考频统计。
+
+## 内容与来源
+
+概念和技术结论参考教材、论文、标准及官方文档，链接保留在对应小节。公开考点回忆仅提供整理方向，工程专题的来源详见[资料来源](engineering.html#sources)。第三方资料仍属于原作者，外部链接不意味着本站重新授权其内容。
+
+笔记仍可能有疏漏。发现符号、推导、答案或链接问题，欢迎[提交勘误](https://github.com/pyq623/ai-study-notes/issues)，请附章节名称及具体位置。
+
+## 隐私与答题记录
+
+阅读和练习不需要登录。答题记录通过localStorage保存在当前浏览器，本站不将答案上传服务器，也没有统计脚本或广告。清理浏览器数据、更换设备、从本地文件转到网页域名，都会影响记录的可用性；可在练习区导出JSON备份，目前没有导入功能。
+
+本站由GitHub Pages托管，访问网站与打开外部资料仍会向对应服务发送通常的网络请求。数学字体、图示和页面脚本由本站提供。
+
+## 开源许可
+
+- 本仓库原创笔记、题目与图示采用 [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/deed.zh-hans)：可分享与改编，须保留署名、许可链接，并注明修改。
+- 网站构建代码及原创样式采用 [MIT许可证](https://github.com/pyq623/ai-study-notes/blob/main/LICENSE)。
+- KaTeX及其字体遵循各自附带的许可，详见[第三方声明](https://github.com/pyq623/ai-study-notes/blob/main/THIRD_PARTY_NOTICES.md)。
+
+引用本站可写：**pyq623，AI基础与工程笔记，https://pyq623.github.io/ai-study-notes/**。
+
+[返回学习总览](index.html)
