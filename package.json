@@ -1,0 +1,13 @@
+{
+  "name": "ai-study-notes",
+  "version": "1.0.0",
+  "private": true,
+  "description": "AI\u57fa\u7840\u4e0e\u5de5\u7a0b\u7b14\u8bb0",
+  "scripts": {
+    "build": "python3 scripts/build.py",
+    "test": "python3 -m unittest discover -s tests"
+  },
+  "dependencies": {
+    "katex": "0.16.22"
+  }
+}

@@ -1,0 +1,97 @@
+[
+  {
+    "id": "X1",
+    "kind": "小红书考点回忆",
+    "title": "阿里笔试：全是工程化AI应用",
+    "url": "https://www.xiaohongshu.com/explore/6a801fc6000000002c003407",
+    "coverage": "公开考点回忆：后端基础、堆/hash、LRU/LFU、向量相似度、网络、并发、协程、数据库索引；Agent上下文管理、工具调用、错误处理、hook、安全。无完整题干与选项，不宣称原题。",
+    "read_at": "2026-10-16"
+  },
+  {
+    "id": "X2",
+    "kind": "小红书题型与实践经验",
+    "title": "8/22 阿里笔试面筋",
+    "url": "https://www.xiaohongshu.com/explore/6a892ad80000000024027184",
+    "coverage": "公开考点回忆：后端与Agent选择题、拆分功能模块和测试经验。个人场次与代码量、成绩不外推到本次考试。",
+    "read_at": "2026-10-16"
+  },
+  {
+    "id": "N1",
+    "kind": "牛客公开笔试回忆",
+    "title": "阿里巴巴ai应用研发笔试",
+    "url": "https://www.nowcoder.com/feed/main/detail/50419bb6a1fd457cada9b67ac5db7a13",
+    "coverage": "Agent组成、工作流、工具调用、规划、记忆、RAG；边界测试经验。只采用考点方向，不将回忆题量推定为具体考试场次。",
+    "read_at": "2026-10-16"
+  },
+  {
+    "id": "N2",
+    "kind": "牛客公开部分题目",
+    "title": "阿里巴巴笔试 Agent 开发岗 8 月 15 日笔试题与解析",
+    "url": "https://www.nowcoder.com/discuss/919412926992117760",
+    "coverage": "公开可读部分包含推理延迟、温度、AVL、位置编码、重采样等；Agent评测多选仅首选项可读。未读取付费内容，不补造截断选项。",
+    "read_at": "2026-10-16"
+  },
+  {
+    "id": "D1",
+    "kind": "技术一手资料",
+    "title": "Anthropic · Building effective agents",
+    "url": "https://www.anthropic.com/engineering/building-effective-agents",
+    "coverage": "工作流与自主Agent区分、反馈循环与停止条件。"
+  },
+  {
+    "id": "D2",
+    "kind": "技术一手资料",
+    "title": "Anthropic · Effective context engineering for AI agents",
+    "url": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
+    "coverage": "上下文选择、压缩与按需加载。"
+  },
+  {
+    "id": "D3",
+    "kind": "官方文档",
+    "title": "LangGraph · Persistence",
+    "url": "https://docs.langchain.com/oss/python/langgraph/persistence",
+    "coverage": "线程、检查点和恢复。旧durable-execution地址现重定向到此页；本资料不依赖特定框架API。"
+  },
+  {
+    "id": "D4",
+    "kind": "官方文档",
+    "title": "JSON Schema · object",
+    "url": "https://json-schema.org/understanding-json-schema/reference/object",
+    "coverage": "properties、required与additionalProperties。"
+  },
+  {
+    "id": "D5",
+    "kind": "官方文档",
+    "title": "MCP · Architecture overview",
+    "url": "https://modelcontextprotocol.io/docs/learn/architecture",
+    "coverage": "宿主、客户端、服务器与工具等能力。"
+  },
+  {
+    "id": "D6",
+    "kind": "技术一手资料",
+    "title": "AWS · Timeouts, retries, and backoff with jitter",
+    "url": "https://aws.amazon.com/builders-library/timeouts-retries-and-backoff-with-jitter/",
+    "coverage": "超时、有限重试、退避与抖动；课程数字案例自编。"
+  },
+  {
+    "id": "D7",
+    "kind": "官方文档",
+    "title": "Python · Coroutines and Tasks",
+    "url": "https://docs.python.org/3/library/asyncio-task.html",
+    "coverage": "任务调度、协程取消和资源清理；不将特定并发API语义泛化。"
+  },
+  {
+    "id": "D8",
+    "kind": "官方文档",
+    "title": "PostgreSQL · Multicolumn indexes",
+    "url": "https://www.postgresql.org/docs/current/indexes-multicolumn.html",
+    "coverage": "B-tree复合索引、前导列与skip scan等版本相关行为。"
+  },
+  {
+    "id": "D9",
+    "kind": "技术文档",
+    "title": "MDN · Using server-sent events",
+    "url": "https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events",
+    "coverage": "SSE事件、id和连接；恢复须由应用提供重放能力。"
+  }
+]
