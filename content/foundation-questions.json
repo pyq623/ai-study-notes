@@ -2245,5 +2245,383 @@
     ],
     "type": "多选",
     "review_anchor": "lesson-5-step-2"
+  },
+  {
+    "id": "5-51",
+    "unit": 5,
+    "lesson": 3,
+    "review_anchor": "lesson-3-step-8",
+    "stem": "【Ring计数】B=4、S=2048、H=4096，BF16每元素2 byte。4卡对这份hidden state做一次等分块Ring All-Reduce。张量大小、内部交换轮数、每卡发送量分别是多少？",
+    "options": [
+      "64 MiB、6轮、96 MiB",
+      "64 MiB、1轮、64 MiB",
+      "64 MiB、6轮、192 MiB",
+      "128 MiB、6轮、192 MiB"
+    ],
+    "answer": "A",
+    "explanations": [
+      "A正确：A=4×2048×4096×2=64 MiB；RS与AG各3轮，共6轮；每轮64/4=16 MiB，每卡发送96 MiB。",
+      "B错误：1次算子调用不等于1轮网络交换；这里内部有2×(4−1)=6轮。",
+      "C错误：192 MiB是每卡发送加接收的总量，本题只问发送。",
+      "D错误：激活只有题设这一份，不要无故乘2；KV缓存才另有K、V两份。"
+    ],
+    "type": "单选"
+  },
+  {
+    "id": "5-52",
+    "unit": 5,
+    "lesson": 3,
+    "review_anchor": "lesson-3-step-8",
+    "stem": "【AG输入口径】4卡各自持有16 MiB不同分片，执行等分块Ring All-Gather。哪些结论正确？",
+    "options": [
+      "每卡最终有64 MiB完整拼接",
+      "每卡发送48 MiB",
+      "每卡发送12 MiB，因为完整张量大小为16 MiB",
+      "全组发送192 MiB"
+    ],
+    "answer": "ABD",
+    "explanations": [
+      "A正确：4份×16 MiB=64 MiB，AG只收集拼接。",
+      "B正确：每卡交换3轮，每轮16 MiB，发送48 MiB。",
+      "C错误：16 MiB是单卡输入分片，公式中的完整张量M应为64 MiB；3/4×64=48 MiB。",
+      "D正确：全组发送量为4×48=192 MiB，不重复统计接收端。"
+    ],
+    "type": "多选"
+  },
+  {
+    "id": "5-53",
+    "unit": 5,
+    "lesson": 3,
+    "review_anchor": "lesson-3-step-9",
+    "stem": "【TP次数】经典Megatron稠密Transformer，不开SP、不重计算，不计embedding等辅助通信。本卡负责24层，一次更新处理4个microbatch。该卡在前向＋反向中共参与多少次TP All-Reduce？",
+    "options": [
+      "96次",
+      "192次",
+      "384次",
+      "必须再乘TP度才能确定"
+    ],
+    "answer": "C",
+    "explanations": [
+      "A错误：24×4只数出了层与批，没有计每层训练的4次AR。",
+      "B错误：2×24×4=192只计前向或只计反向。",
+      "C正确：Attention与MLP各有前向1次、反向1次AR，所以4×24×4=384次。",
+      "D错误：这是每卡参与的集合调用次数；同组所有rank共同参与一次操作，不能再乘TP度。"
+    ],
+    "type": "单选"
+  },
+  {
+    "id": "5-54",
+    "unit": 5,
+    "lesson": 3,
+    "review_anchor": "lesson-3-step-9",
+    "stem": "【TP字节数】经典TP，不开SP、不重计算。TP度8，完整激活A=64 MiB，每层前向2次AR、反向2次AR，正反向同精度，使用Ring。每卡、每层、每microbatch的前向与训练发送量分别是多少？",
+    "options": [
+      "112 MiB、224 MiB",
+      "224 MiB、448 MiB",
+      "448 MiB、896 MiB",
+      "1792 MiB、3584 MiB"
+    ],
+    "answer": "B",
+    "explanations": [
+      "A错误：一次AR为2×7/8×64=112 MiB；前向有两次，不是一次。",
+      "B正确：单次112 MiB，前向2×112=224 MiB，训练4×112=448 MiB。",
+      "C错误：这是将发送与接收相加后的口径；本题只统计发送。",
+      "D错误：这是8卡全组发送量，不是每卡发送量。"
+    ],
+    "type": "单选"
+  },
+  {
+    "id": "5-55",
+    "unit": 5,
+    "lesson": 3,
+    "review_anchor": "lesson-3-step-10",
+    "stem": "【SP基础计数】每个Attention/MLP块前向各1次AG＋1次RS。保留反向所需输入，不额外重取，不重计算。TP＋SP每层一次前向＋反向，与无SP的4次AR相比，哪些正确？",
+    "options": [
+      "训练合计4次AG＋4次RS",
+      "训练合计2次AG＋2次RS",
+      "简单Ring下，有效发送字节数与4次同等大小AR相同",
+      "调用数从4变8，因此字节数必然翻倍"
+    ],
+    "answer": "AC",
+    "explanations": [
+      "A正确：前向两个块合计2 AG＋2 RS，反向对应2 AG＋2 RS，共4 AG＋4 RS。",
+      "B错误：这只是前向次数，没有计反向。",
+      "C正确：每次AR的Ring发送量等于同等完整张量的一次RS加一次AG，故总字节相同。",
+      "D错误：AG/RS每次只承担一个Ring阶段，次数翻倍不代表字节翻倍。"
+    ],
+    "type": "多选"
+  },
+  {
+    "id": "5-56",
+    "unit": 5,
+    "lesson": 3,
+    "review_anchor": "lesson-3-step-10",
+    "stem": "【SP额外AG】在基础训练4 AG＋4 RS之外，QKV与MLP第一投影的权重梯度计算各需要额外AG一次输入。TP度4，完整A=64 MiB，每次AG/RS按Ring计。每层训练次数和每卡发送量是多少？",
+    "options": [
+      "4 AG＋4 RS、384 MiB",
+      "6 AG＋4 RS、384 MiB",
+      "6 AG＋6 RS、576 MiB",
+      "6 AG＋4 RS、480 MiB"
+    ],
+    "answer": "D",
+    "explanations": [
+      "A错误：遗漏反向两处输入重取产生的额外2次AG。",
+      "B错误：次数正确，但字节数没有加上两个额外AG；重叠通信不意味着不传字节。",
+      "C错误：输入重取只额外AG，不自动增加RS。",
+      "D正确：4+2=6次AG，RS仍4次；每次发送3/4×64=48 MiB，10×48=480 MiB。"
+    ],
+    "type": "单选"
+  },
+  {
+    "id": "5-57",
+    "unit": 5,
+    "lesson": 3,
+    "review_anchor": "lesson-3-step-11",
+    "stem": "【PP边界】32层按非交错PP分成4个stage，每stage一张卡，无TP/SP。每条边界的激活、激活梯度均为64 MiB，5个microbatch各完成前向与反向。全流水线总共发送多少条消息、多少数据？",
+    "options": [
+      "30条、1920 MiB",
+      "6条、384 MiB",
+      "320条、20480 MiB",
+      "30条、3840 MiB"
+    ],
+    "answer": "A",
+    "explanations": [
+      "A正确：每批有2×(4−1)=6条边界消息；5批共30条，30×64=1920 MiB。",
+      "B错误：这只计了一个microbatch。",
+      "C错误：stage内部层间没有PP网络通信，不能按32层逐层计数。",
+      "D错误：1920 MiB已是全组发送量，把接收再加一遍就重复统计了传输。"
+    ],
+    "type": "单选"
+  },
+  {
+    "id": "5-58",
+    "unit": 5,
+    "lesson": 3,
+    "review_anchor": "lesson-3-step-11",
+    "stem": "【PP单卡口径】非交错4-stage流水线，每stage一张卡。一批前向和反向，每条消息都为64 MiB。只计PP发送量，按stage 0、1、2、3排列，分别是多少？",
+    "options": [
+      "128、128、128、128 MiB",
+      "0、64、64、0 MiB",
+      "64、128、128、64 MiB",
+      "384、384、384、384 MiB"
+    ],
+    "answer": "C",
+    "explanations": [
+      "A错误：首stage无反向发送给前一stage，末stage无前向发送给后一stage。",
+      "B错误：首尾也会发送，且中间各有前向与反向两条消息。",
+      "C正确：前向为64、64、64、0；反向为0、64、64、64；相加为64、128、128、64。",
+      "D错误：384 MiB是全流水线总发送量，不能分配给每一张卡。"
+    ],
+    "type": "单选"
+  },
+  {
+    "id": "5-59",
+    "unit": 5,
+    "lesson": 3,
+    "review_anchor": "lesson-3-step-11",
+    "stem": "【PP Decode】非交错PP=4、每stage一张卡，无TP/SP。活跃batch固定8，H=4096，每元素2 byte，普通Decode每步每序列传一个新token的hidden state。执行10次后续Decode，全流水线发送多少？不计Prefill。",
+    "options": [
+      "0.625 MiB",
+      "1.875 MiB",
+      "3.75 MiB",
+      "还必须乘历史KV长度"
+    ],
+    "answer": "B",
+    "explanations": [
+      "A错误：每条边界10步发送8×4096×2×10=0.625 MiB，但有3条边界。",
+      "B正确：每步每边界65536 byte=64 KiB；3×10×64 KiB=1920 KiB=1.875 MiB。",
+      "C错误：这是又把接收端加了一遍。",
+      "D错误：本题传的是当前token的hidden state，历史KV保留在所属层，不随每步完整跨stage发送。"
+    ],
+    "type": "单选"
+  },
+  {
+    "id": "5-60",
+    "unit": 5,
+    "lesson": 3,
+    "review_anchor": "lesson-3-step-12",
+    "stem": "【CP轮数】4卡CP，无TP。全序列K＋V共16 MiB，每卡持有4 MiB，Q固定本地，采用完整KV块的简单环形交换。一层前向，每卡需要几轮网络交换、发送多少？",
+    "options": [
+      "4轮、16 MiB",
+      "3轮、24 MiB",
+      "1轮、12 MiB",
+      "3轮、12 MiB"
+    ],
+    "answer": "D",
+    "explanations": [
+      "A错误：本地KV块直接计算，不需要先通过网络发送给自己。",
+      "B错误：3×4=12 MiB是发送量；24 MiB为发送与接收相加。",
+      "C错误：一次逻辑收集包含3轮块交换，不能混淆两种次数。",
+      "D正确：有4块计算，其中1块本地、3块来自其他rank；发送3×4=12 MiB。"
+    ],
+    "type": "单选"
+  },
+  {
+    "id": "5-61",
+    "unit": 5,
+    "lesson": 3,
+    "review_anchor": "lesson-3-step-12",
+    "stem": "【CP训练量】B=2、S=4096、KV总宽度Hkv=1024、每元素2 byte，CP=4，无TP。按前向收集KV、反向重取KV、反向归约分片dK/dV三个同等规模Ring阶段估算，一层一批的每卡与全组训练发送量是多少？",
+    "options": [
+      "24 MiB、96 MiB",
+      "72 MiB、72 MiB",
+      "36 MiB、144 MiB",
+      "72 MiB、288 MiB"
+    ],
+    "answer": "D",
+    "explanations": [
+      "A错误：全KV为2×2×4096×1024×2=32 MiB；24 MiB只是前向一个阶段。",
+      "B错误：每卡72 MiB正确，全组还应乘4。",
+      "C错误：漏算了K、V两份中的一个因子2；全KV应为32 MiB而非16 MiB。",
+      "D正确：全KV32 MiB，每阶段每卡发送3/4×32=24 MiB；三阶段72 MiB，全组4×72=288 MiB。"
+    ],
+    "type": "单选"
+  },
+  {
+    "id": "5-62",
+    "unit": 5,
+    "lesson": 3,
+    "review_anchor": "lesson-3-step-12",
+    "stem": "【SP与CP】以下哪些说法符合本节限定的Megatron式SP与KV交换式CP？",
+    "options": [
+      "SP利用TP组，让部分逐token操作的激活沿序列分片",
+      "CP把Attention中的Query位置也分片，通过KV交换覆盖所需上下文",
+      "GQA的CP通信必须仍按所有Query头各自一份KV计算",
+      "CP前向4个KV块计算，必然等于4轮网络交换"
+    ],
+    "answer": "AB",
+    "explanations": [
+      "A正确：SP常用于LayerNorm、Dropout等区域，进入TP计算区通过AG恢复该组序列。",
+      "B正确：本地Q不必变成全序列Q；它需要访问的其他位置KV通过通信取得，仍遵守掩码。",
+      "C错误：应按实际KV头宽度Hkv计算，共享KV的Query头不能重复计数。",
+      "D错误：本地块无需网络交换，4卡完整环模型是3轮交换加1块本地计算。"
+    ],
+    "type": "多选"
+  },
+  {
+    "id": "5-63",
+    "unit": 5,
+    "lesson": 3,
+    "review_anchor": "lesson-3-step-13",
+    "stem": "【EP次数】标准按assignment交换的All-to-All dispatcher，64个专家均匀放在EP=8张卡上，top-2；不计Expert TP、路由元数据与重计算。每卡专家数，以及每MoE层一批的前向、训练All-to-All次数分别是多少？",
+    "options": [
+      "8个；2次；4次",
+      "8个；4次；8次",
+      "2个；2次；4次",
+      "64个；8次；16次"
+    ],
+    "answer": "A",
+    "explanations": [
+      "A正确：每卡64/8=8个专家；前向dispatch、combine各一次，反向对应两次，训练共4次。",
+      "B错误：top-2增加assignment条数，不把已包含dispatch/combine的次数再乘2。",
+      "C错误：top-2是每token选2个专家，不是每卡只存2个专家。",
+      "D错误：专家分布在8卡上，集合调用次数也不是按卡数逐个相加。"
+    ],
+    "type": "单选"
+  },
+  {
+    "id": "5-64",
+    "unit": 5,
+    "lesson": 3,
+    "review_anchor": "lesson-3-step-13",
+    "stem": "【EP字节数】各EP rank有1024个本地token，top-2、H=4096、每元素2 byte、EP=8。每个来源rank的assignments均匀分布到全部8个EP rank，每assignment独立发送，无padding、丢弃或同目的地去重，激活梯度同精度。每卡前向与训练预计发送量是多少？",
+    "options": [
+      "14 MiB、28 MiB",
+      "28 MiB、56 MiB",
+      "32 MiB、64 MiB",
+      "224 MiB、448 MiB"
+    ],
+    "answer": "B",
+    "explanations": [
+      "A错误：R=1024×2×4096×2=16 MiB，单次dispatch远端发送14 MiB；前向还要combine。",
+      "B正确：远端比例7/8；前向2×7/8×16=28 MiB，训练4×7/8×16=56 MiB。",
+      "C错误：这没有扣除预计在本卡执行的1/8 assignments，本题不计本地拷贝为网络流量。",
+      "D错误：这是8卡全组发送量；本题问每卡。"
+    ],
+    "type": "单选"
+  },
+  {
+    "id": "5-65",
+    "unit": 5,
+    "lesson": 3,
+    "review_anchor": "lesson-3-step-13",
+    "stem": "【EP公式边界】关于EP通信量，哪些判断正确？",
+    "options": [
+      "即使总体专家负载均衡，也不能仅凭这一点推出远端比例为(e−1)/e",
+      "若两个专家在同一远端卡，优化器无条件保证token只传一次",
+      "padding、token丢弃、融合dispatcher可能改变有效传输量",
+      "与CP/SP组合时，应使用进入Router的实际本地token数"
+    ],
+    "answer": "ACD",
+    "explanations": [
+      "A正确：各卡只路由本地专家也可总体均衡，却没有远端流量；需要每个来源的assignment均匀分布到各目的rank等额外假设。",
+      "B错误：是否跨assignment去重由dispatcher实现决定，不是优化器的无条件保证；本节基线按assignment发送。",
+      "C正确：本节公式已排除这些因素；采用它们后要按实际payload与路径重算。",
+      "D正确：Tlocal必须来自实际张量布局，不能盲目按所有并行度重复除。"
+    ],
+    "type": "多选"
+  },
+  {
+    "id": "5-66",
+    "unit": 5,
+    "lesson": 3,
+    "review_anchor": "lesson-3-step-14",
+    "stem": "【DDP桶与累积】DP=4，梯度总buffer为128 MiB，分成4个等大桶。每次更新累积8批，仅最后一批同步。每桶做一次Ring AR，不计其他通信。每卡AR次数与发送量是多少？",
+    "options": [
+      "1次、192 MiB",
+      "4次、768 MiB",
+      "4次、192 MiB",
+      "32次、1536 MiB"
+    ],
+    "answer": "C",
+    "explanations": [
+      "A错误：一次完整同步不等于一次API调用；这里分4桶，要做4次AR。",
+      "B错误：128 MiB是所有桶的总大小，不能乘桶数；每桶32 MiB，每桶发送48 MiB。",
+      "C正确：仅同步一轮、共4桶；每卡发送4×(2×3/4×32)=192 MiB。",
+      "D错误：这是每批都同步时的结果；本题前7批不进行梯度同步。"
+    ],
+    "type": "单选"
+  },
+  {
+    "id": "5-67",
+    "unit": 5,
+    "lesson": 3,
+    "review_anchor": "lesson-3-step-14",
+    "stem": "【DDP通信精度】当前DP组复制的本卡参数有1,000,000个，参数梯度以FP32（每元素4 byte）通信，DP=8。一次完整Ring梯度同步，每卡发送量和全组发送量是多少？按十进制byte计。",
+    "options": [
+      "4,000,000；32,000,000",
+      "14,000,000；112,000,000",
+      "7,000,000；7,000,000",
+      "7,000,000；56,000,000"
+    ],
+    "answer": "D",
+    "explanations": [
+      "A错误：4,000,000是梯度buffer字节数，还没乘Ring系数。",
+      "B错误：这是把每卡发送与接收相加，再求全组收发之和的口径。",
+      "C错误：每卡发送正确，全组发送还要乘8。",
+      "D正确：Mg=1,000,000×4=4,000,000；每卡2×7/8×Mg=7,000,000；全组×8=56,000,000。"
+    ],
+    "type": "单选"
+  },
+  {
+    "id": "5-68",
+    "unit": 5,
+    "lesson": 3,
+    "review_anchor": "lesson-3-step-15",
+    "stem": "【混合并行计数】32层稠密Transformer按PP=4均分，每stage使用TP=8，每DP副本一次更新经过4个microbatch。经典TP，不开SP、不重计算，不计辅助通信。只问某一张卡参与的TP All-Reduce次数，是多少？",
+    "options": [
+      "128次",
+      "512次",
+      "1024次",
+      "由PP边界数决定，为24次"
+    ],
+    "answer": "A",
+    "explanations": [
+      "A正确：本卡只负责32/4=8层；每层每批训练4次AR，合计4×8×4=128。",
+      "B错误：用整模型32层代替本卡8层，重复算了其他PP阶段的TP通信。",
+      "C错误：128次不能再乘TP度8；8卡共同参与同一次集合操作。",
+      "D错误：2×(4−1)×4=24只是在阶段层面计数的逻辑边界传递次数。与TP组合后的实际P2P消息数取决于rank间通信方案，且与本题所问单卡TP AR次数无关。"
+    ],
+    "type": "单选"
   }
 ]

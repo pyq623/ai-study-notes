@@ -78,7 +78,7 @@ class SiteTests(unittest.TestCase):
                 self.assertEqual(len(q['options']),4);self.assertEqual(len(q['explanations']),4)
                 self.assertTrue(q['answer'] and set(q['answer'])<=set('ABCD'))
                 self.assertIn(q.get('review_anchor','lesson-'+str(q['lesson'])),page.ids)
-        self.assertEqual(total,158)
+        self.assertEqual(total,176)
     def test_search_targets(self):
         data=json.loads(re.search(r'<script id="search-data" type="application/json">(.*?)</script>',self.pages['index.html'].text,re.S).group(1))
         self.assertGreater(len(data),100)
@@ -120,7 +120,18 @@ class SiteTests(unittest.TestCase):
             for q in json.loads((ROOT/'content'/file).read_text()):
                 self.assertNotIn(q['id'],actual)
                 actual[q['id']]=hashlib.sha256(json.dumps({k:q[k] for k in ('stem','type','options','answer','explanations')},ensure_ascii=False,sort_keys=True).encode()).hexdigest()
-        self.assertEqual(actual,expected)
+        self.assertEqual({k:actual[k] for k in expected},expected)
+        self.assertEqual(set(actual)-set(expected),{f'5-{n}' for n in range(51,69)})
+    def test_infra_exercises_follow_their_topics(self):
+        questions=json.loads((ROOT/'content/foundation-questions.json').read_text())
+        for q in questions:
+            if q['unit']!=5 or q['lesson']!=3:continue
+            section=self.pages['unit-5.html'].text.split(f'<h3 id="{q["review_anchor"]}">')[1].split('<h3 id=')[0].split('<h2 id=')[0]
+            self.assertIn(f'href="#q-{q["id"]}"',section)
+        for page in self.pages.values():
+            self.assertIn('176道',page.text)
+            self.assertNotIn('158道',page.text)
+
     def test_split_chapter_boundaries(self):
         infra=(ROOT/'content/unit-5.md').read_text()
         algorithms=(ROOT/'content/unit-6.md').read_text()
@@ -148,11 +159,11 @@ class SiteTests(unittest.TestCase):
         self.assertEqual(mapping['lesson-11-step-4'],'unit-7.html#lesson-3-step-2')
     def test_progress_uses_disjoint_questions_and_storage(self):
         data=json.loads(re.search(r'<script id="progress-data" type="application/json">(.*?)</script>',self.pages['index.html'].text,re.S).group(1))
-        self.assertEqual([len(x['question_ids']) for x in data],[14,16,15,15,10,32,8,48])
+        self.assertEqual([len(x['question_ids']) for x in data],[14,16,15,15,28,32,8,48])
         self.assertEqual(len({x['storage_key'] for x in data}),8)
         self.assertEqual(data[-1]['storage_key'],'ai-study-notes-unit-6-v2')
         all_ids=[qid for x in data for qid in x['question_ids']]
-        self.assertEqual(len(set(all_ids)),158)
+        self.assertEqual(len(set(all_ids)),176)
         for x in data:
             file=f"unit-{x['unit']}.html" if x['unit']<8 else 'engineering.html'
             quiz=json.loads(re.search(r'<script id="quiz-data" type="application/json">(.*?)</script>',self.pages[file].text,re.S).group(1))
@@ -162,6 +173,6 @@ class SiteTests(unittest.TestCase):
         for name,page in self.pages.items():
             self.assertTrue(all(not urlsplit(r).scheme for r in page.resources),name)
     def test_readme_counts(self):
-        self.assertIn('158', (ROOT/'README.md').read_text())
+        self.assertIn('176', (ROOT/'README.md').read_text())
 
 if __name__=='__main__':unittest.main()
