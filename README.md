@@ -1,8 +1,10 @@
-# AI基础与工程笔记
+# AI学习与面试笔记
 
-从数学、机器学习到模型训练、AI Infra与Agent工程的中文开放学习笔记，配图解、逐步计算和208道交互练习。
+一个入口打开两份中文笔记：AI基础与工程笔记（208题），以及Agentic RL面试笔记（60题、20道口述追问）。全站共268道交互练习，配图解、手算与逐项解析。
 
 **在线阅读：https://pyq623.github.io/ai-study-notes/**
+
+首页两个入口：[基础与工程笔记](https://pyq623.github.io/ai-study-notes/study.html)、[面试笔记](https://pyq623.github.io/ai-study-notes/interview.html)。
 
 | 内容 | 练习 |
 |---|---:|
@@ -15,8 +17,9 @@
 | 单元7 · 计算机系统基础 | 8 |
 | 单元8 · 强化学习与偏好优化算法 | 32 |
 | 工程专题 · Agent、上下文与工程实践 | 48 |
+| 面试笔记 · Agentic RL的5个单元 | 60 |
 
-全站可相互跳转，首页支持章节标题搜索，相关知识点提供跨章链接。题目支持判分、逐项解析、错题筛选与JSON导出。答题记录只保存在读者当前浏览器，不上传、不跨设备同步；本地文件版记录不会自动迁移，目前没有导入功能。
+全站可相互跳转，首页支持跨两份笔记搜索，基础笔记目录位于`study.html`，相关知识点提供跨章链接。题目支持判分、逐项解析、错题筛选与JSON导出。答题记录只保存在读者当前浏览器，不上传、不跨设备同步；本地文件版记录不会自动迁移，目前没有导入功能。
 
 笔记由pyq623整理并借助AI辅助编写，练习均为自编教学题，非官方题库。技术资料在各小节列出，欢迎通过Issues和Pull Requests勘误。
 
@@ -40,6 +43,8 @@ python3 -m http.server 8000 --directory docs
 
 - `content/unit-1.md` ～ `unit-8.md`：八个主题单元。
 - `content/engineering.md`：工程专题。
+- `content/interview-course.json`、`interview-research.html`：面试讲义、60题、口述提纲和经过公开化整理的面经来源。
+- `scripts/interviews.py`、`assets/interview-quiz.js`：面试页面生成与就地练习／口述笔记。
 - `content/*-questions.json`：题目、正确选项、逐项解析与回看锚点。新增题目请追加ID，不重排已有题号，以保留读者记录。
 - `assets/tree-*.svg`、`rl-*.svg`：教学图示。
 - `scripts/build.py`：页面、章节锚点、练习入口和跨章链接。
@@ -56,6 +61,8 @@ python3 -m http.server 8000 --directory docs
 `content/legacy-unit-5-links.json`保存旧锚点映射。`scripts/build.py`中的`STORAGE`指定固定存储键，不要随单元编号调整：工程专题保留旧unit-6-v2键，新单元6使用unit-6-v3；单元6、7从旧unit-5-v2读取对应题目作为回退，新记录优先。
 
 新增单元8使用`content/rl-questions.json`，题号8-01～8-32。内部课程ID独立于展示编号：工程专题仍为8，新单元8为9；构建器的`FILES`、`LABELS`和`STORAGE`分别指定网页、展示名称与记录存储，保持旧记录兼容。
+
+面试笔记保留原题号AR1-01～AR5-12和独立存储键`accio-agentic-rl-v1-u1`～`u5`。个人口述与答题记录只在浏览器中保存；本地文件版记录不会跨域自动迁移。公开内容不包含个人面试日程或聊天记录。
 
 ## 许可
 
