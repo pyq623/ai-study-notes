@@ -26,7 +26,7 @@ def build(root,out,bundle,render,shell,search):
     units=bundle['units'];sources=bundle['sources']
     # Related foundation pages complement the interview lesson, without renumbering either course.
     related={
-        (1,1):[('engineering.html#lesson-1','Agent与工程闭环')],
+        (1,1):[('engineering.html#lesson-1','Agent与工程闭环'),('unit-8.html#lesson-1','token log-prob与mask'),('unit-8.html#lesson-2','Return与Advantage')],
         (1,2):[('unit-8.html#lesson-2','Return与Advantage')],
         (1,3):[('unit-8.html#lesson-10','DPO的四个log-prob')],
         (1,4):[('unit-1.html#lesson-7','模型评估基础')],
@@ -52,18 +52,22 @@ def build(root,out,bundle,render,shell,search):
         u=unit['id'];file=f'interview-unit-{u}.html'
         qs=[q for lesson in unit['lessons'] for q in lesson['questions']]
         cards.append('<section class="home-card"><div class="meta">面试单元'+str(u)+' · 4节 · 12题</div><h2>'+escape(unit['title'])+'</h2><p>'+escape(unit['description'])+'</p><a class="button" href="'+file+'">打开讲义与练习 →</a></section>')
-        toc='<aside class="course-toc"><details open><summary>本单元目录</summary>'+''.join('<a href="#lesson-'+str(l['number'])+'">'+str(l['number'])+'. '+escape(l['title'])+'</a>' for l in unit['lessons'])+'<a href="#practice-controls">筛选错题与导出笔记</a></details></aside>'
+        subtopics={l['number']:re.findall(r'^### (.+)$',l['body'],re.M) for l in unit['lessons']}
+        toc='<aside class="course-toc"><details open><summary>本单元目录</summary>'+''.join('<a href="#lesson-'+str(l['number'])+'">'+str(l['number'])+'. '+escape(l['title'])+'</a>'+('<details class="topic-subnav"><summary>展开分步讲解</summary>'+''.join('<a href="#lesson-'+str(l['number'])+'-step-'+str(i)+'">'+escape(title)+'</a>' for i,title in enumerate(subtopics[l['number']],1))+'</details>' if subtopics[l['number']] else '') for l in unit['lessons'])+'<a href="#practice-controls">筛选错题与导出笔记</a></details></aside>'
         controls='<section class="panel" id="practice-controls"><p>每节读完紧接3题，再用口述追问练表达。</p><div class="toolbar"><label>练习范围<select id="scope"><option value="all">全部题目</option><option value="wrong">最近答错</option><option value="uncertain">最近犹豫／猜测</option><option value="unanswered">尚未提交</option></select></label><button type="button" id="practice-mode" aria-pressed="false">只看习题</button><button type="button" id="export">导出答题与口述笔记</button></div><p id="summary" class="summary" aria-live="polite"></p><p id="save-status" class="status"></p><p id="filter-status" class="status" aria-live="polite"></p></section>'
         lessons=[]
         print_parts.append('<h2 id="print-unit-'+str(u)+'">面试单元'+str(u)+' · '+escape(unit['title'])+'</h2>')
         for lesson in unit['lessons']:
             n=lesson['number'];title=escape(lesson['title']);body=render(lesson['body'])
+            for i,_ in enumerate(subtopics[n],1):
+                body=body.replace('<h3>','<h3 id="lesson-'+str(n)+'-step-'+str(i)+'">',1)
             rubric='<ul>'+''.join('<li>'+escape(r)+'</li>' for r in lesson['rubric'])+'</ul>'
             links=''.join('<a href="interview-sources.html#'+k+'">'+k+' · '+escape(sources[k]['title'])+'</a> ' for k in lesson['sources'])
             oral='<details class="oral"><summary>继续口述：'+escape(lesson['oral'])+'</summary><p>先闭卷讲2分钟，再对照要点；页面不自动判断口述正确性。</p><textarea data-oral="u'+str(u)+'-l'+str(n)+'" aria-label="第'+str(n)+'节口述笔记" placeholder="写下回答、项目证据或待补的问题……"></textarea><details><summary>展开口述自检要点</summary>'+rubric+'</details></details>'
             cross='<aside class="related"><strong>回到基础与工程笔记</strong><p>'+''.join('<a href="'+url+'">'+escape(label)+' →</a>' for url,label in related[(u,n)])+'</p></aside>'
             lessons.append('<section class="lesson" id="lesson-'+str(n)+'"><h2>'+str(n)+'. '+title+'</h2><div class="lesson-body">'+body+'</div><p class="source-note">原整理核对依据：'+links+'</p>'+cross+'<div class="questions"><h3>读完本节，立即练3题</h3>'+''.join(question_rendering.question_html(q) for q in lesson['questions'])+'</div>'+oral+'</section>')
-            print_parts.append('<section><h3 id="print-u'+str(u)+'-l'+str(n)+'">'+title+'</h3>'+body+'<p class="source-note">原整理核对依据：'+links+'</p>')
+            print_body=body.replace('id="lesson-'+str(n)+'-step-','id="print-u'+str(u)+'-l'+str(n)+'-step-')
+            print_parts.append('<section><h3 id="print-u'+str(u)+'-l'+str(n)+'">'+title+'</h3>'+print_body+'<p class="source-note">原整理核对依据：'+links+'</p>')
             for q in lesson['questions']:
                 answer=question_rendering.answer_html(q).replace('href="#lesson-'+str(n)+'"','href="#print-u'+str(u)+'-l'+str(n)+'"')
                 print_parts.append('<section class="question"><h4>'+q['id']+' · '+question_rendering.rich(q['stem'])+'</h4><ol type="A">'+''.join('<li>'+question_rendering.rich(o)+'</li>' for o in q['options'])+'</ol>'+answer+'</section>')
@@ -80,7 +84,7 @@ def build(root,out,bundle,render,shell,search):
     (out/'interview.html').write_text(shell('面试笔记',home))
     research=(root/'content/interview-research.html').read_text()
     (out/'interview-research.html').write_text(shell('面经与追问整理','<main id="main-content" class="research-report">'+research+'</main>'))
-    source_body='<main id="main-content" class="passage"><h1>面试笔记：技术资料与来源</h1><p>沿用2026年10月18日的核对记录。官方文档与论文用于核对技术原理，面经只提供复习方向；API与默认配置应按实施版本重新确认。</p><p><a href="interview-research.html">面经来源及适用边界 →</a></p><ol class="source-list">'+''.join('<li id="'+k+'"><strong>'+k+' · '+escape(s['kind'])+'</strong><p><a href="'+escape(s['url'],quote=True)+'">'+escape(s['title'])+'</a></p></li>' for k,s in sources.items())+'</ol></main>'
+    source_body='<main id="main-content" class="passage"><h1>面试笔记：技术资料与来源</h1><p>各条资料注明最近核对日期。官方文档与论文用于核对技术原理，面经只提供复习方向；API与默认配置应按实施版本重新确认。</p><p><a href="interview-research.html">面经来源及适用边界 →</a></p><ol class="source-list">'+''.join('<li id="'+k+'"><strong>'+k+' · '+escape(s['kind'])+'</strong><p><a href="'+escape(s['url'],quote=True)+'">'+escape(s['title'])+'</a></p><p class="meta">核对日期：'+escape(s['checked_at'])+'</p></li>' for k,s in sources.items())+'</ol></main>'
     (out/'interview-sources.html').write_text(shell('面试资料来源',source_body))
     print_body='<main id="main-content" class="course-article interview-print"><h1>Agentic RL面试复习总册</h1><p>20节讲义、60题与口述自检要点。本页直接显示答案；练习请进入各单元。</p><button class="no-print" onclick="window.print()">打印／存为PDF</button>'+''.join(print_parts)+'</main>'
     (out/'interview-print.html').write_text(shell('面试复习总册',print_body))
