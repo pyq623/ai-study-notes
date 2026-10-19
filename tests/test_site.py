@@ -30,9 +30,9 @@ class SiteTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):cls.pages={p.name:Page(p) for p in DOCS.glob('*.html')}
     def test_pages_and_navigation(self):
-        self.assertEqual(set(self.pages),set(CHAPTERS+['index.html','about.html','404.html']))
+        self.assertEqual(set(self.pages),set(CHAPTERS+[f'interview-unit-{u}.html' for u in range(1,6)]+['index.html','study.html','interview.html','interview-research.html','interview-sources.html','interview-print.html','about.html','404.html']))
         for name,page in self.pages.items():
-            for target in CHAPTERS+['index.html']:self.assertIn(target,page.nav,name)
+            for target in ['index.html','study.html','interview.html']:self.assertIn(target,page.nav,name)
             self.assertIn('main-content',page.ids)
     def test_nested_404_navigation(self):
         page=self.pages['404.html']
@@ -129,7 +129,7 @@ class SiteTests(unittest.TestCase):
             section=self.pages['unit-5.html'].text.split(f'<h3 id="{q["review_anchor"]}">')[1].split('<h3 id=')[0].split('<h2 id=')[0]
             self.assertIn(f'href="#q-{q["id"]}"',section)
         for page in self.pages.values():
-            self.assertIn('208道',page.text)
+            self.assertIn('268道',page.text)
             self.assertNotIn('158道',page.text)
 
     def test_rl_unit_labels_neighbors_and_topic_practice(self):
@@ -144,7 +144,7 @@ class SiteTests(unittest.TestCase):
         self.assertIn('href="unit-8.html">下一章：强化学习与偏好优化算法',self.pages['unit-7.html'].text)
         self.assertIn('href="engineering.html">下一章：工程专题',page.text)
         self.assertIn('href="unit-8.html">← 上一章',self.pages['engineering.html'].text)
-        self.assertIn('>单元8</a>',self.pages['index.html'].text)
+        self.assertIn('>单元8</a>',self.pages['study.html'].text)
 
     def test_split_chapter_boundaries(self):
         infra=(ROOT/'content/unit-5.md').read_text()
@@ -172,7 +172,7 @@ class SiteTests(unittest.TestCase):
         self.assertEqual(mapping['lesson-11-step-5'],'unit-6.html#lesson-5-step-1')
         self.assertEqual(mapping['lesson-11-step-4'],'unit-7.html#lesson-3-step-2')
     def test_progress_uses_disjoint_questions_and_storage(self):
-        data=json.loads(re.search(r'<script id="progress-data" type="application/json">(.*?)</script>',self.pages['index.html'].text,re.S).group(1))
+        data=json.loads(re.search(r'<script id="progress-data" type="application/json">(.*?)</script>',self.pages['study.html'].text,re.S).group(1))
         self.assertEqual([len(x['question_ids']) for x in data],[14,16,15,15,28,32,8,32,48])
         self.assertEqual(len({x['storage_key'] for x in data}),9)
         self.assertEqual(data[-1]['storage_key'],'ai-study-notes-unit-6-v2')
