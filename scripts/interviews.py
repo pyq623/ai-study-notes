@@ -62,8 +62,10 @@ def build(root,out,bundle,render,shell,search):
             for i,_ in enumerate(subtopics[n],1):
                 body=body.replace('<h3>','<h3 id="lesson-'+str(n)+'-step-'+str(i)+'">',1)
             rubric='<ul>'+''.join('<li>'+escape(r)+'</li>' for r in lesson['rubric'])+'</ul>'
+            oral_answer=render(lesson['oral_answer']) if lesson.get('oral_answer') else ''
+            oral_reference='<details><summary>展开精简参考答案</summary>'+oral_answer+'</details>' if oral_answer else ''
             links=''.join('<a href="interview-sources.html#'+k+'">'+k+' · '+escape(sources[k]['title'])+'</a> ' for k in lesson['sources'])
-            oral='<details class="oral"><summary>继续口述：'+escape(lesson['oral'])+'</summary><p>先闭卷讲2分钟，再对照要点；页面不自动判断口述正确性。</p><textarea data-oral="u'+str(u)+'-l'+str(n)+'" aria-label="第'+str(n)+'节口述笔记" placeholder="写下回答、项目证据或待补的问题……"></textarea><details><summary>展开口述自检要点</summary>'+rubric+'</details></details>'
+            oral='<details class="oral"><summary>继续口述：'+escape(lesson['oral'])+'</summary><p>先闭卷讲2分钟，再对照要点；页面不自动判断口述正确性。</p><textarea data-oral="u'+str(u)+'-l'+str(n)+'" aria-label="第'+str(n)+'节口述笔记" placeholder="写下回答、项目证据或待补的问题……"></textarea>'+oral_reference+'<details><summary>展开口述自检要点</summary>'+rubric+'</details></details>'
             cross='<aside class="related"><strong>回到基础与工程笔记</strong><p>'+''.join('<a href="'+url+'">'+escape(label)+' →</a>' for url,label in related[(u,n)])+'</p></aside>'
             lessons.append('<section class="lesson" id="lesson-'+str(n)+'"><h2>'+str(n)+'. '+title+'</h2><div class="lesson-body">'+body+'</div><p class="source-note">原整理核对依据：'+links+'</p>'+cross+'<div class="questions"><h3>读完本节，立即练3题</h3>'+''.join(question_rendering.question_html(q) for q in lesson['questions'])+'</div>'+oral+'</section>')
             print_body=body.replace('id="lesson-'+str(n)+'-step-','id="print-u'+str(u)+'-l'+str(n)+'-step-')
@@ -71,7 +73,7 @@ def build(root,out,bundle,render,shell,search):
             for q in lesson['questions']:
                 answer=question_rendering.answer_html(q).replace('href="#lesson-'+str(n)+'"','href="#print-u'+str(u)+'-l'+str(n)+'"')
                 print_parts.append('<section class="question"><h4>'+q['id']+' · '+question_rendering.rich(q['stem'])+'</h4><ol type="A">'+''.join('<li>'+question_rendering.rich(o)+'</li>' for o in q['options'])+'</ol>'+answer+'</section>')
-            print_parts.append('<h4>口述自检</h4><p>'+escape(lesson['oral'])+'</p>'+rubric+'</section>')
+            print_parts.append('<h4>口述自检</h4><p>'+escape(lesson['oral'])+'</p>'+rubric+('<h4>精简参考答案</h4>'+oral_answer if oral_answer else '')+'</section>')
             search.append(dict(title=lesson['title'],course='面试笔记 · '+unit['title'],url=file+'#lesson-'+str(n)))
         previous=f'interview-unit-{u-1}.html' if u>1 else 'interview.html'
         following=f'interview-unit-{u+1}.html' if u<5 else 'interview.html'
