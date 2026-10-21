@@ -441,7 +441,7 @@ $$V_{DP,sync}=2\frac{D-1}{D}M_g$$
 
 ### ⑮ 一张表记次数，一张表查字节数
 
-**次数表：均采用上面明确的教学模型。** “训练”指一次前向＋对应反向，不含额外模型重计算；基础SP与重取输入变体分开看。
+**次数表：** AR＝All-Reduce，AG＝All-Gather，RS＝Reduce-Scatter；采用前面明确的教学模型。 “训练”指一次前向＋对应反向，不含额外模型重计算；基础SP与重取输入变体分开看。
 
 | 策略与统计范围 | 前向 | 反向 | 训练合计 |
 | --- | --- | --- | --- |
@@ -451,19 +451,23 @@ $$V_{DP,sync}=2\frac{D-1}{D}M_g$$
 | PP：一批走完整条流水线 | $p-1$ 条P2P消息 | $p-1$ 条P2P消息 | **$2(p-1)$ 条消息** |
 | CP：每Attention层、每批 | 1次KV收集；简单环有 $c-1$ 轮 | KV重取＋梯度RS | **3个逻辑通信阶段**，不是3条消息 |
 | EP：标准All-to-All，每MoE层、每批 | 2 All-to-All | 2 All-to-All | **4 All-to-All** |
-| 普通DDP：一次完整梯度同步 | 不计初始化等 | 每个梯度桶1 AR | **$n_b$ AR**；是否乘K看同步策略 |
+| DDP：每次更新累积 $K$ 批，只在最后同步 | 不计初始化等 | 最后一批同步 $n_b$ 个梯度桶 | **$n_b$ AR** |
+| DDP：每次更新累积 $K$ 批，每批都同步 | 不计初始化等 | 每批同步 $n_b$ 个梯度桶，共 $K$ 批 | **$Kn_b$ AR** |
 
-为缩短字节数表，定义 $f(r)=(r-1)/r$；$A=BSHb$，$A_{KV}=2BSH_{kv}b$，$R=T_{local}kHb$，$M_g=N_{local}b_g$。除PP外都是**每卡发送量**；正反向激活同精度。
+**字节数表：公式直接展开，可代入计算。** 按Ring及前述教学模型，只计发送的有效载荷；激活与激活梯度同精度。PP为非交错流水线、每stage一张卡；CP反向重取KV；EP按各来源均匀路由、无padding／丢弃估算。
 
-| 策略 | 前向发送 | 反向发送 | 前向＋反向发送 |
+符号：$B$＝microbatch样本数，$S$＝序列长度，$H$＝hidden维度，$b$＝每个激活元素的字节数；$t,p,c,e,D$ 分别为TP、PP、CP、EP、DP度。$H_{kv}$＝KV头数×每头维度，$T_{local}$＝本卡进入Router的token数，$k$＝每token选择的专家数；$N_{local}$＝当前DP组复制的本卡参数元素数，$b_g$＝每个梯度元素的通信字节数，$n_b$＝梯度桶数，$K$＝每次更新累积的microbatch数。
+
+| 策略与统计范围 | 前向发送（byte） | 反向发送（byte） | 训练合计发送（byte） |
 | --- | --- | --- | --- |
-| TP | $4f(t)A$ | $4f(t)A$ | $8f(t)A$ |
-| TP＋SP基础模型 | $4f(t)A$ | $4f(t)A$ | $8f(t)A$ |
-| TP＋SP，两处重取输入 | $4f(t)A$ | $6f(t)A$ | $10f(t)A$ |
-| **PP：整条流水线** | $(p-1)A$ | $(p-1)A$ | $2(p-1)A$ |
-| CP：反向重取KV模型 | $f(c)A_{KV}$ | 约 $2f(c)A_{KV}$ | 约 $3f(c)A_{KV}$ |
-| EP：各来源均匀路由模型 | 约 $2f(e)R$ | 约 $2f(e)R$ | 约 $4f(e)R$ |
-| 普通DDP：一次完整梯度同步 | 此处记0 | $2f(D)M_g$ | $2f(D)M_g$ |
+| **TP：每卡、每层、每microbatch** | $4\frac{t-1}{t}BSHb$ | $4\frac{t-1}{t}BSHb$ | $8\frac{t-1}{t}BSHb$ |
+| **TP＋SP基础：每卡、每层、每microbatch** | $4\frac{t-1}{t}BSHb$ | $4\frac{t-1}{t}BSHb$ | $8\frac{t-1}{t}BSHb$ |
+| **TP＋SP两处重取：每卡、每层、每microbatch** | $4\frac{t-1}{t}BSHb$ | $6\frac{t-1}{t}BSHb$ | $10\frac{t-1}{t}BSHb$ |
+| **PP：整条流水线、每microbatch** | $(p-1)BSHb$ | $(p-1)BSHb$ | $2(p-1)BSHb$ |
+| **CP反向重取KV：每卡、每Attention层、每microbatch** | $2\frac{c-1}{c}BSH_{kv}b$ | $\approx4\frac{c-1}{c}BSH_{kv}b$ | $\approx6\frac{c-1}{c}BSH_{kv}b$ |
+| **EP均匀路由：每卡、每MoE层、每microbatch** | $\approx2\frac{e-1}{e}T_{local}kHb$ | $\approx2\frac{e-1}{e}T_{local}kHb$ | $\approx4\frac{e-1}{e}T_{local}kHb$ |
+| **DDP仅末批同步：每卡、每次参数更新** | 0（仅计梯度同步） | $2\frac{D-1}{D}N_{local}b_g$ | $2\frac{D-1}{D}N_{local}b_g$ |
+| **DDP每批都同步：每卡、每次参数更新** | 0（仅计梯度同步） | $2K\frac{D-1}{D}N_{local}b_g$ | $2K\frac{D-1}{D}N_{local}b_g$ |
 
 **拿到题目按四步做：** ①确定统计对象（每卡还是全组）；②算实际张量大小；③数算子／边界／同步轮次；④乘层数、microbatch数等题设范围。不要在一张表里把PP全组与TP单卡直接比较。
 
