@@ -9,6 +9,7 @@ import subprocess
 from markdown_it import MarkdownIt
 import question_rendering
 import interviews
+import coding_practice
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / 'docs'
@@ -74,7 +75,7 @@ def escaped_json(value):
     return json.dumps(value, ensure_ascii=False).replace('<', '\\u003c').replace('&', '\\u0026')
 
 def nav(current=None,area='study'):
-    collections=[('index.html','总览','hub'),('study.html','基础与工程笔记','study'),('interview.html','面试笔记','interview')]
+    collections=[('index.html','总览','hub'),('study.html','基础与工程笔记','study'),('interview.html','面试笔记','interview'),('coding-practice.html','手撕专项','coding')]
     global_nav='<nav class="site-nav" aria-label="全站导航">'+''.join('<a href="'+url+'"'+(' aria-current="page"' if area==key else '')+'>'+label+'</a>' for url,label,key in collections)+'<a href="'+REPO+'">GitHub ↗</a></nav>'
     links=[(FILES[u]+'.html',LABELS[u],u) for u,_,_ in COURSES] if area=='study' else [(f'interview-unit-{u}.html',f'面试单元{u}',None) for u in range(1,6)]+[('interview-research.html','面经与追问',None),('interview-sources.html','资料来源',None)] if area=='interview' else []
     chapters='<nav class="site-nav chapter-nav" aria-label="'+('笔记章节' if area=='study' else '面试章节')+'">'+''.join('<a href="'+url+'"'+(' aria-current="page"' if current is not None and current==u else '')+'>'+label+'</a>' for url,label,u in links)+'</nav>' if links else ''
@@ -211,7 +212,9 @@ def build():
     progress=[dict(unit=u,url=FILES[u]+'.html',question_ids=[q['id'] for q in banks[u]],**STORAGE[u]) for u,_,_ in COURSES]
     (OUT/'study.html').write_text(shell('基础与工程笔记',home,0,'<script src="assets/records.js" defer></script><script id="progress-data" type="application/json">'+escaped_json(progress)+'</script><script id="search-data" type="application/json">'+escaped_json(search)+'</script><script src="assets/site.js" defer></script>'))
     interviews.build(ROOT,OUT,INTERVIEW,render_interview,lambda title,body,scripts='':shell(title,body,scripts=scripts,area='interview'),search)
+    coding_practice.build(ROOT, OUT, lambda title, body, scripts='': shell(title, body, scripts=scripts, area='coding'), search)
     hub='<main id="main-content"><section class="hero"><div class="eyebrow">学习 · 练习 · 面试复习</div><h1>AI学习与面试笔记</h1><p class="lead">基础知识与面试复习放在同一个入口。按需要选择一份笔记，也可以搜索知识点，在讲解、例题和面试追问之间切换。</p></section><div class="home-grid collection-grid"><section class="home-card"><div class="meta">'+str(len(COURSES)-1)+'个主题单元 + 工程专题 · '+str(STUDY_QUESTIONS)+'道练习</div><h2>AI基础与工程笔记</h2><p>数学、机器学习、神经网络、AI Infra、数据结构、计算机系统、强化学习与Agent工程。</p><a class="button" href="study.html">打开基础与工程笔记 →</a></section><section class="home-card"><div class="meta">5个面试单元 · 60道练习 · 20道口述追问</div><h2>面试笔记</h2><p>Agentic RL、训练沙箱、轨迹与数据、训练技巧、异步系统，结合公开面经、项目表达与系统设计。</p><a class="button" href="interview.html">打开面试笔记 →</a></section></div><section class="search-panel"><label for="search"><strong>查找知识点与面试主题</strong></label><p class="meta">例如：GRPO、沙箱、通信、DPO、项目、口述</p><input id="search" type="search" placeholder="搜索两份笔记的章节标题" autocomplete="off"><p id="search-status" aria-live="polite"></p><ul id="search-results"></ul></section></main>'
+    hub=hub.replace('</div><section class="search-panel">','<section class="home-card"><div class="meta">按知识点与岗位 · Python</div><h2>面试手撕专项复习</h2><p>AI Infra：sqrt、Attention、LRU、Softmax 与路径 DP，11 道练习。</p><a class="button" href="coding-practice.html">进入手撕专项 →</a></section></div><section class="search-panel">',1)
     (OUT/'index.html').write_text(shell('笔记总览',hub,scripts='<script id="search-data" type="application/json">'+escaped_json(search)+'</script><script src="assets/site.js" defer></script>',area='hub'))
     about=md.render((CONTENT/'about.md').read_text())
     (OUT/'about.html').write_text(shell('关于与许可','<main id="main-content" class="passage">'+about+'</main>',area='hub'))
