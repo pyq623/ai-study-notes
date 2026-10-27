@@ -27,6 +27,8 @@
 
 入口 `coding-practice.html`，AI Infra 专题为 `coding-ai-infra.html`。11 道 Python/PyTorch 练习（5 道必练、3 道巩固、3 道选做）覆盖 sqrt、Attention、LRU、Softmax、路径 DP 与字符串，提供折叠答案、自测清单、草稿、复习状态和 JSON 导出；不在网页执行代码或自动判题。记录仅保存在当前浏览器与域名下，`?preview=1` 隔离测试记录。
 
+有对应原笔记的答案保留原解法、变量名和注释：Attention 与 LRU 保留类；Hot100 的无状态方法仅移除 `Solution` 和 `self`，必要时补充类型导入。`content/coding/original-solutions.json` 记录来源、允许的改动和校验值，测试防止无意改写。
+
 源码为 `content/coding/ai-infra.json` 与 `content/coding/solutions/`，由 `scripts/coding_practice.py` 生成。调整顺序时保留题号，避免复习记录错位。运行 Attention 和张量 Softmax 示例需要另外安装 PyTorch；构建网站不需要 PyTorch。`npm test` 会在已安装 PyTorch 时运行 `tests/test_coding_torch.py` 的数值测试，未安装时明确跳过该组测试。
 
 ## 本地构建
