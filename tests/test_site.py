@@ -30,7 +30,7 @@ class SiteTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):cls.pages={p.name:Page(p) for p in DOCS.glob('*.html')}
     def test_pages_and_navigation(self):
-        self.assertEqual(set(self.pages),set(CHAPTERS+[f'interview-unit-{u}.html' for u in range(1,6)]+['index.html','study.html','interview.html','interview-research.html','interview-sources.html','interview-print.html','about.html','404.html']))
+        self.assertEqual(set(self.pages),set(CHAPTERS+[f'interview-unit-{u}.html' for u in range(1,6)]+['index.html','study.html','interview.html','interview-research.html','interview-sources.html','interview-print.html','about.html','404.html','coding-practice.html','coding-ai-infra.html']))
         for name,page in self.pages.items():
             for target in ['index.html','study.html','interview.html']:self.assertIn(target,page.nav,name)
             self.assertIn('main-content',page.ids)

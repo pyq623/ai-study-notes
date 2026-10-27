@@ -1,10 +1,10 @@
 # AI学习与面试笔记
 
-一个入口打开两份中文笔记：AI基础与工程笔记（208题），以及Agentic RL面试笔记（60题、20道口述追问）。全站共268道交互练习，配图解、手算与逐项解析。
+一个入口打开两份中文笔记：AI基础与工程笔记（208题），以及Agentic RL面试笔记（60题、20道口述追问）。包含268道交互练习，另有11道面试手撕练习，配图解、手算与逐项解析。
 
 **在线阅读：https://pyq623.github.io/ai-study-notes/**
 
-首页两个入口：[基础与工程笔记](https://pyq623.github.io/ai-study-notes/study.html)、[面试笔记](https://pyq623.github.io/ai-study-notes/interview.html)。
+基础与面试入口：[基础与工程笔记](https://pyq623.github.io/ai-study-notes/study.html)、[面试笔记](https://pyq623.github.io/ai-study-notes/interview.html)。
 
 | 内容 | 练习 |
 |---|---:|
@@ -19,9 +19,15 @@
 | 工程专题 · Agent、上下文与工程实践 | 48 |
 | 面试笔记 · Agentic RL的5个单元 | 60 |
 
-全站可相互跳转，首页支持跨两份笔记搜索，基础笔记目录位于`study.html`，相关知识点提供跨章链接。题目支持判分、逐项解析、错题筛选与JSON导出。答题记录只保存在读者当前浏览器，不上传、不跨设备同步；本地文件版记录不会自动迁移，目前没有导入功能。
+全站可相互跳转，首页支持搜索两份笔记与手撕专项，基础笔记目录位于`study.html`，相关知识点提供跨章链接。两份笔记的交互题支持判分、逐项解析、错题筛选与JSON导出。答题记录只保存在读者当前浏览器，不上传、不跨设备同步；本地文件版记录不会自动迁移，目前没有导入功能。
 
 笔记由pyq623整理并借助AI辅助编写，练习均为自编教学题，非官方题库。技术资料在各小节列出，欢迎通过Issues和Pull Requests勘误。
+
+## 面试手撕专项
+
+入口 `coding-practice.html`，AI Infra 专题为 `coding-ai-infra.html`。11 道 Python/PyTorch 练习（5 道必练、3 道巩固、3 道选做）覆盖 sqrt、Attention、LRU、Softmax、路径 DP 与字符串，提供折叠答案、自测清单、草稿、复习状态和 JSON 导出；不在网页执行代码或自动判题。记录仅保存在当前浏览器与域名下，`?preview=1` 隔离测试记录。
+
+源码为 `content/coding/ai-infra.json` 与 `content/coding/solutions/`，由 `scripts/coding_practice.py` 生成。调整顺序时保留题号，避免复习记录错位。运行 Attention 和张量 Softmax 示例需要另外安装 PyTorch；构建网站不需要 PyTorch。`npm test` 会在已安装 PyTorch 时运行 `tests/test_coding_torch.py` 的数值测试，未安装时明确跳过该组测试。
 
 ## 本地构建
 
