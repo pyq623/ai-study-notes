@@ -1,7 +1,7 @@
 {
   "id": "ai-infra",
   "title": "AI Infra 面试手撕",
-  "updated": "2026-10-26",
+  "updated": "2026-10-27",
   "sources": [
     {
       "id": "personal",
@@ -105,7 +105,7 @@
         "personal",
         "nc-mha"
       ],
-      "task": "使用 PyTorch 基础张量操作实现 MultiHeadAttention。输入 x:[B,S,D]，H 个头，D 能被 H 整除；支持 causal 和 [B,S] 的有效 key mask。不能直接调用 nn.MultiheadAttention 或 scaled_dot_product_attention。",
+      "task": "使用 PyTorch 基础张量操作实现 MultiHeadAttention。输入 x:[B,S,D]，H 个头，D 能被 H 整除；支持 causal 和 [B,S] 的有效 key mask。不能直接调用 nn.MultiheadAttention 或 scaled_dot_product_attention。 沿用原笔记实现；mask 叠加后，每个 query 至少有一个可见 key。",
       "examples": [
         "B=2,S=5,D=16,H=4 → 输出 [2,5,16]",
         "固定参数、dropout=0；修改第 4 个 token，前 3 个位置的 causal 输出应不变。"
@@ -118,14 +118,14 @@
       "checks": [
         "写出 Q/K/V、scores 与输出形状",
         "正确处理 causal mask 与 padding mask",
-        "测试全 mask 行无 NaN",
+        "检查每个 query 至少有一个可见 key",
         "关闭 dropout 后测试因果性与被屏蔽 token 的不变性"
       ],
       "pitfalls": [
         "本实现 attention_mask 的 1/True 表示有效 key；取反后才屏蔽。",
-        "全 mask 行 softmax(-inf,…,-inf) 会产生 NaN；参考代码先处理该行。",
+        "原版实现要求每个 query 至少有一个可见 key；全 mask 行 softmax(-inf,…,-inf) 会产生 NaN。",
         "padding mask 只屏蔽 key，不自动将 padding query 的最终输出清零；输出投影的 bias 也可能非零。",
-        "本参考沿用站主已有 mha_practice.py，补充全 mask 行处理；不是对原稿的静默覆盖。"
+        "参考答案逐字保留原笔记 mha_practice.py 的实现、变量名与注释。"
       ],
       "followups": [
         "为什么除以 √head_dim，而不是 √d_model？",
@@ -146,7 +146,7 @@
       "minutes": 15,
       "evidence": "基于 MHA 的扩展练习",
       "sources": [],
-      "task": "在 MHA 基础上实现 MultiQueryAttention。Q 保持 H 个头，K/V 各只有一个头；用广播完成 attention，保持输出 [B,S,D]。",
+      "task": "在 MHA 基础上实现 MultiQueryAttention。Q 保持 H 个头，K/V 各只有一个头；用广播完成 attention，保持输出 [B,S,D]。 沿用原笔记实现；mask 叠加后，每个 query 至少有一个可见 key。",
       "examples": [
         "B=2,S=5,D=16,H=4：Q=[2,4,5,4]；K/V=[2,1,5,4]。"
       ],
@@ -158,12 +158,12 @@
       "checks": [
         "写出 Q/K/V、scores 与输出形状",
         "正确处理 causal mask 与 padding mask",
-        "测试全 mask 行无 NaN",
+        "检查每个 query 至少有一个可见 key",
         "关闭 dropout 后测试因果性与被屏蔽 token 的不变性"
       ],
       "pitfalls": [
         "本实现 attention_mask 的 1/True 表示有效 key；取反后才屏蔽。",
-        "全 mask 行 softmax(-inf,…,-inf) 会产生 NaN；参考代码先处理该行。",
+        "原版实现要求每个 query 至少有一个可见 key；全 mask 行 softmax(-inf,…,-inf) 会产生 NaN。",
         "padding mask 只屏蔽 key，不自动将 padding query 的最终输出清零；输出投影的 bias 也可能非零。",
         "共享的是 KV 头，不是把所有 Q 头求平均。"
       ],
@@ -185,7 +185,7 @@
       "minutes": 15,
       "evidence": "基于 MHA 的扩展练习",
       "sources": [],
-      "task": "实现 MultiGroupAttention(d_model,num_heads,group)。这里 group 是 KV 头数 G；要求 H%G==0，每个 KV 头供连续的 H/G 个 Q 头使用。",
+      "task": "实现 MultiGroupAttention(d_model,num_heads,group)。这里 group 是 KV 头数 G；要求 H%G==0，每个 KV 头供连续的 H/G 个 Q 头使用。 沿用原笔记实现；mask 叠加后，每个 query 至少有一个可见 key。",
       "examples": [
         "H=8,G=2：KV 头序列映射为 [0,0,0,0,1,1,1,1]。",
         "G=H 对应 MHA 头结构；G=1 对应 MQA 头结构（比较输出需对齐权重）。"
@@ -198,13 +198,13 @@
       "checks": [
         "写出 Q/K/V、scores 与输出形状",
         "正确处理 causal mask 与 padding mask",
-        "测试全 mask 行无 NaN",
+        "检查每个 query 至少有一个可见 key",
         "关闭 dropout 后测试因果性与被屏蔽 token 的不变性",
         "验证 G=1、G=H 和非法整除情况"
       ],
       "pitfalls": [
         "本实现 attention_mask 的 1/True 表示有效 key；取反后才屏蔽。",
-        "全 mask 行 softmax(-inf,…,-inf) 会产生 NaN；参考代码先处理该行。",
+        "原版实现要求每个 query 至少有一个可见 key；全 mask 行 softmax(-inf,…,-inf) 会产生 NaN。",
         "padding mask 只屏蔽 key，不自动将 padding query 的最终输出清零；输出投影的 bias 也可能非零。",
         "repeat 与 repeat_interleave 不等价，前者可能得到 [0,1,0,1,…] 的错误头映射。",
         "演示展开有额外内存开销；KV cache 应保存展开前的 G 个头。"
@@ -229,20 +229,20 @@
       "sources": [
         "xhs-lru"
       ],
-      "task": "实现 LRUCache(capacity)、get(key)、put(key,value)，平均 O(1)。不存在返回 -1；访问与更新都刷新最近使用顺序。本练习额外约定容量为 0 时不保存任何项。",
+      "task": "实现 LRUCache(capacity)、get(key)、put(key,value)，平均 O(1)。不存在返回 -1；访问与更新都刷新最近使用顺序。沿用 Hot100 原题约束：capacity 为正整数。",
       "examples": [
         "容量 2：put(1,1),put(2,2),get(1),put(3,3)，随后 get(2)=-1。",
         "更新已有 key 后再插入新 key，应淘汰其他最久未用项。"
       ],
       "hints": [
         "沿用已有笔记：head 后最旧，tail 前最新。",
-        "拆成 _remove 与 _append，复用指针操作。",
+        "沿用原版 hast_dict 与 move_to_tail(key)：先摘出节点，再插到 tail 前。",
         "节点必须保存 key，淘汰时才能同步删除哈希表。"
       ],
       "checks": [
         "初始化时两哨兵互连",
         "get 命中、put 更新都会移到尾部",
-        "容量 1 与容量 0 都能工作",
+        "容量 1 时能正确更新与淘汰",
         "反复访问不产生重复节点"
       ],
       "pitfalls": [
@@ -339,35 +339,37 @@
     },
     {
       "id": "AI-08",
-      "title": "不同路径：滚动数组与障碍变式",
+      "title": "不同路径：二维动态规划",
       "tier": "巩固",
       "minutes": 15,
       "evidence": "题型记录；标准化改编",
       "sources": [
         "xhs-paths"
       ],
-      "task": "m×n 网格从左上到右下，每次只能向右或向下，计算路径数。再实现障碍版本：1 为障碍，0 可通行。这里明确移动规则，不假设面经省略的细节。",
+      "task": "m×n 网格从左上到右下，每次只能向右或向下，计算路径数。m、n 为正整数；沿用 Hot100 原版二维 DP，仅把 Solution 方法改为普通函数。",
       "examples": [
         "m=3,n=7 → 28",
-        "[[0,0,0],[0,1,0],[0,0,0]] → 2；[[1]] → 0。"
+        "m=1,n=7 → 1；m=3,n=1 → 1。"
       ],
       "hints": [
-        "dp[j] 更新前是上方，dp[j-1] 是本行左侧。",
-        "无障碍首行初始化为 1。",
-        "障碍格将 dp[j] 清零；否则加左侧。"
+        "dp[i][j] 表示到达第 i 行、第 j 列的路径数。",
+        "第一行和第一列都只有一种走法，初始化为 1。",
+        "从第 1 行、第 1 列开始：dp[i][j]=dp[i-1][j]+dp[i][j-1]。"
       ],
       "checks": [
-        "解释从左到右更新顺序",
-        "检查单行、单列、起点/终点障碍",
+        "解释上方与左方两个来源",
+        "检查单行、单列和 1×1 网格",
         "不把路径数与最小代价递推混淆"
       ],
       "pitfalls": [
-        "遇障碍不清零会保留从上方穿越障碍的路径。"
+        "二维表使用列表推导式创建，避免多行共享同一个列表。",
+        "先初始化第一行和第一列，再从 i=1、j=1 开始递推。"
       ],
       "followups": [
+        "如果加入障碍，初始化和递推需要怎样调整？",
         "允许四向移动且不能重复走格子时，为什么不能直接沿用这个 DP？"
       ],
-      "complexity": "O(mn) 时间、O(n) 额外空间。",
+      "complexity": "O(mn) 时间、O(mn) 额外空间。",
       "code": "paths.py",
       "original": {
         "label": "Hot100 原笔记：不同路径",
@@ -383,15 +385,15 @@
       "sources": [
         "nc-path"
       ],
-      "task": "给定非负矩形网格，只能向右或向下，求从左上到右下路径的最小元素和，起点终点都计入。不修改输入；空网格约定返回 0。",
+      "task": "给定非空、非负矩形网格，只能向右或向下，求从左上到右下路径的最小元素和，起点终点都计入。不修改输入；沿用 Hot100 原版二维 DP，仅把 Solution 方法改为普通函数。",
       "examples": [
         "[[1,3,1],[1,5,1],[4,2,1]] → 7",
         "[[1,2,3]] → 6。"
       ],
       "hints": [
-        "递推为 min(上方,左方)+当前格值。",
-        "一维 dp 初始全 inf，仅 dp[0]=0。",
-        "从左到右覆盖，边界自然累加。"
+        "dp[i][j] 表示到达当前格子的最小路径和；递推为 min(上方,左方)+当前格值。",
+        "dp[0][0]=grid[0][0]；第一列向下累加，第一行向右累加。",
+        "从 i=1、j=1 开始填二维表，最后返回 dp[m-1][n-1]。"
       ],
       "checks": [
         "起点只累计一次",
@@ -405,7 +407,7 @@
       "followups": [
         "若还要输出路径，如何保存前驱？空间如何变化？"
       ],
-      "complexity": "O(mn) 时间、O(n) 额外空间。",
+      "complexity": "O(mn) 时间、O(mn) 额外空间。",
       "code": "min_path.py",
       "original": {
         "label": "Hot100 原笔记：最小路径和",

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from pathlib import Path
 import importlib.util
+import hashlib
 import json
 import math
 import random
@@ -41,7 +42,7 @@ class CodingTests(unittest.TestCase):
 
     def test_lru_against_reference_and_list_integrity(self):
         rng=random.Random(41)
-        for capacity in [0,1,2,5]:
+        for capacity in [1,2,5]:
             cache=load('lru').LRUCache(capacity); reference=OrderedDict()
             for _ in range(300):
                 key=rng.randrange(8)
@@ -61,17 +62,14 @@ class CodingTests(unittest.TestCase):
                     self.assertLessEqual(len(keys),capacity)
                 self.assertIs(cache.tail.prev,node)
                 self.assertEqual(keys,list(reference))
-                self.assertEqual(set(cache.nodes),set(reference))
+                self.assertEqual(set(cache.hast_dict),set(reference))
 
     def test_paths_against_brute_force(self):
-        paths=load('paths'); cost=load('min_path').min_path_sum
+        paths=load('paths'); cost=load('min_path').minPathSum
         for m in range(1,8):
-            for n in range(1,8):self.assertEqual(paths.unique_paths(m,n),math.comb(m+n-2,m-1))
-        self.assertEqual(paths.paths_with_obstacles([[0,0,0],[0,1,0],[0,0,0]]),2)
-        self.assertEqual(paths.paths_with_obstacles([[1]]),0)
+            for n in range(1,8):self.assertEqual(paths.uniquePaths(m,n),math.comb(m+n-2,m-1))
         self.assertEqual(cost([[1,3,1],[1,5,1],[4,2,1]]),7)
         self.assertEqual(cost([[1,2,3]]),6)
-        self.assertEqual(cost([]),0)
 
     def test_strings_against_enumeration(self):
         unique=load('substring').lengthOfLongestSubstring; palindrome=load('palindrome').longestPalindrome
@@ -82,6 +80,15 @@ class CodingTests(unittest.TestCase):
             answer=palindrome(s)
             self.assertEqual(answer,answer[::-1]);self.assertIn(answer,s)
             self.assertEqual(len(answer),max(map(len,(v for v in subs if v==v[::-1]))))
+
+    def test_original_solutions_are_preserved(self):
+        originals=json.loads((ROOT/'content/coding/original-solutions.json').read_text())
+        bank=json.loads((ROOT/'content/coding/ai-infra.json').read_text())
+        self.assertEqual({item['code'] for item in originals},
+                         {q['code'] for q in bank['questions'] if q['original']})
+        for item in originals:
+            self.assertEqual(hashlib.sha256((SOLUTIONS/item['code']).read_bytes()).hexdigest(),
+                             item['sha256'], item['code'])
 
     def test_bank_sources_and_code(self):
         bank=json.loads((ROOT/'content/coding/ai-infra.json').read_text())
