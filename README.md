@@ -75,9 +75,3 @@ python3 -m http.server 8000 --directory docs
 ## 许可
 
 原创文字、题目与图示采用 [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)，署名为pyq623，并链接本仓库。构建代码和原创样式采用[MIT](LICENSE)。第三方依赖与引用资料不纳入本项目原创许可，参见[第三方声明](THIRD_PARTY_NOTICES.md)。
-
-### HRG 面试通用专栏
-
-`content/accio-hrg.md` 提供 18 道技术岗位 HRG 练习题、结论先行的回答模板和公开来源；构建后为 `docs/accio-hrg.html`，同名 Markdown 可下载。模板中的占位符需由读者按真实情况填写。
-
-默认构建只使用通用源码。`HRG_LOCAL_SOURCE` 仅用于本机私有练习稿；设置该变量得到的 HTML 和 Markdown 不得部署或提交到公开仓库。发布时应清除该变量、重新构建，并检查正文、下载文件和搜索数据。`noindex` 不提供访问控制。
